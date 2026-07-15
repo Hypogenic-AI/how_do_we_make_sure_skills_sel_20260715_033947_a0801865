@@ -1,0 +1,1 @@
+{"content": "I need to calculate 549 * 201.\n\n549 * 201 = 549 * (200 + 1)\n         = 549 * 200 + 549 * 1\n         = 109,800 + 549\n         = 110,349\n\n110349", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 71}

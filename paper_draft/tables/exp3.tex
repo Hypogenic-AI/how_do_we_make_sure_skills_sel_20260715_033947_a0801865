@@ -1,0 +1,21 @@
+\begin{table}[t]
+    \centering
+    \resizebox{0.85\textwidth}{!}{%
+    \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Setting} & \textbf{base (no skill)} & \textbf{in-context skill} & \textbf{LoRA on \emph{document}} & \textbf{LoRA on \emph{examples}} \\
+        \midrule
+        \vocabzeth (novelty-info)  & 0.00 & 0.95 & \textbf{0.00} & \textbf{1.00} \\
+        \arithbnine (novelty-proc) & 0.00 & 0.00 & 0.00 & 0.00 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Exp~3: internalization probe} (\qwen, held-out test, \emph{no} skill in the
+    prompt unless labelled in-context). For \zeth, example-distillation writes the glossary into
+    the weights so the model translates held-out phrases at $1.00$ with nothing in context ---
+    proof of real, transferable knowledge --- but fine-tuning on the \emph{document} internalizes
+    nothing ($0.00$). The ``fine-tune it back'' probe therefore cannot by itself classify a
+    skill: its verdict flips with the recipe. Base-9 fails at $0.00$ in every condition (a
+    capability floor a 7B model cannot cross).}
+    \label{tab:exp3}
+\end{table}

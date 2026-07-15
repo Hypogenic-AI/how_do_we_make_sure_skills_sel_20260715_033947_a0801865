@@ -1,0 +1,93 @@
+\section{Methodology}
+\label{sec:method}
+
+Our goal is to decide, for a skill $S$ that improves a task, whether the improvement reflects
+\emph{genuine new knowledge} the base model lacked or \emph{re-elicitation} of latent knowledge.
+We first build a substrate where the ground truth of this question is known
+(\secref{sec:substrate}), then define the discriminator (\secref{sec:end}), and finally
+describe three experiments (\secref{sec:experiments}).
+
+\subsection{A substrate where novelty is known by construction}
+\label{sec:substrate}
+
+We use \emph{counterfactual} tasks whose regime we can dial, all verified deterministically
+against computable ground truth so no LLM-as-judge is needed. \Tabref{tab:substrate}
+summarizes the four settings. The elicitation settings (\arithbten, \vocabes) require a
+procedure that is provably in-distribution, so a skill can only re-elicit it. The
+novelty-procedure settings (\arithbnine, \arithbeleven) use the canonical counterfactual of
+base-$b$ arithmetic~\citep{reasoningreciting}: the correct procedure is verifiable but
+out-of-distribution and unreliable. The novelty-information setting (\vocabzeth) is the key
+construction: the 24-word invented-language glossary is generated from a fixed random seed at
+run time, so the mapping \emph{cannot} be in any training corpus. It is the cleanest lab analog
+of a new declarative fact the model has not memorized, yet answers are exactly checkable by
+string match.
+
+\input{tables/substrate}
+
+\subsection{The Elicitation--Novelty Discriminator (\END)}
+\label{sec:end}
+
+Fix the base model and a held-out test set. For a skill $S$ with test accuracy $\mathrm{acc}_S$
+against a no-skill baseline $\mathrm{acc}_0$, we define the \emph{normalized gain}
+\begin{equation}
+g(S) = \frac{\mathrm{acc}_S - \mathrm{acc}_0}{1 - \mathrm{acc}_0},
+\label{eq:gain}
+\end{equation}
+which measures the fraction of the available headroom the skill captures. The \END then
+comprises three measurable quantities.
+
+\para{Self-generation utility (\SG).} We ask the model to write its own skill from the task
+description alone --- no answers --- and reuse it on the test set, giving a self-generated skill
+$S_{\text{self}}$. We report $\SG = g(S_{\text{self}}) / g(S_{\text{correct}})$. A high \SG
+means the model can produce its own working skill, so the knowledge was already latent
+(elicitation); a low \SG means it cannot (candidate novelty).
+
+\para{Length-controlled gain (\LCG).} A skill may help simply by adding context length or
+shaping the prompt. We construct a length-matched irrelevant memo $S_{\text{len}}$ and report
+$\LCG = g(S_{\text{correct}}) - g(S_{\text{len}})$. Real content yields $\LCG>0$; a pure
+prompt-shape effect yields $\LCG\approx0$.
+
+\para{Verifier-only self-evolution.} We run a Voyager/STaR-style loop that refines the model's
+own skill from experience, under two feedback signals: \emph{verifier-only} (pass/fail) versus
+\emph{with-answer} (ground-truth revealed). If self-evolution can reach the correct-skill
+ceiling under verifier-only feedback, the knowledge was latent; if it stalls under
+verifier-only feedback but unlocks with ground-truth answers, the knowledge came from outside.
+
+\para{Predicted signature.} \emph{Elicitation} $\Rightarrow$ small $g$, high \SG, $\LCG\approx0$,
+verifier-only self-evolution succeeds. \emph{Novelty} $\Rightarrow$ large $g$, low \SG,
+$\LCG>0$, verifier-only self-evolution stalls while an external signal unlocks it. The
+falsifiable claim is that self-evolution and self-generation sit at the elicitation floor
+precisely because \SG is low in the novelty regime: one cannot self-evolve knowledge one does
+not have.
+
+\subsection{Three experiments}
+\label{sec:experiments}
+
+\para{Exp~1 --- Discriminator.} $5$ settings $\times$ $2$ models $\times$ $4$ conditions
+(no-skill, correct-skill, self-generated-skill, length-matched control) $\times$ $N=60$
+held-out items. Self-generated skills are written by the model unaided and then reused on the
+test set. Models: \claude and \gpt via OpenRouter.
+
+\para{Exp~2 --- Self-evolution loop.} A Voyager/STaR-style loop ($K=5$) that refines the
+model's own skill from experience under verifier-only versus with-answer feedback. We track the
+learning curve on a disjoint 40-item test set for \arithbnine, \vocabzeth, and \vocabes.
+Model: \claude.
+
+\para{Exp~3 --- Internalization probe.} We test the widely proposed ``fine-tune the skill back
+into the weights'' idea on a local GPU. We LoRA fine-tune \qwen to put the skill into weights,
+then test \emph{without} the skill in context on a held-out split. We compare two fine-tuning
+modes: \emph{doc} (train on the skill document as prose) versus \emph{examples} (train on
+input$\to$output pairs). Settings: \vocabzeth and \arithbnine.
+
+\subsection{Reproducibility}
+\label{sec:repro}
+
+Seeds are fixed at 42 and temperature is 0 (deterministic); all API responses are cached
+($\approx$3{,}000 calls). Verifiers are deterministic. We report bootstrap 95\% confidence
+intervals (5{,}000 resamples), two-proportion $z$-tests, and Cohen's $h$ effect sizes. LoRA
+uses rank $16$, $\alpha=32$, $3$ epochs, learning rate $2\times10^{-4}$, bf16, on a single RTX
+A6000; the software stack is Python 3.12, torch 2.5.1+cu124, transformers 4.56.2, and peft.
+Our original novelty-information task was a substitution cipher, but provider guardrails on
+OpenRouter blocked it as jailbreak-adjacent (\texttt{finish\_reason: content\_filter}); we
+replaced it with the mathematically equivalent but innocuous invented-glossary task, and
+document this because it affects reproducibility.

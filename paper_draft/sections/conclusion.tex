@@ -1,0 +1,23 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We asked whether Skills and self-evolving agents create new knowledge or merely elicit latent
+knowledge, and how to tell the two apart. On a substrate where ``new versus latent'' is known by
+construction, we showed that skills cross from elicitation into genuine new knowledge in exactly
+the cases the base model cannot self-generate the skill --- and in those cases self-evolution
+from introspection or verifier-only feedback fails completely, recovering only when fed an
+external ground-truth signal. Today's self-evolving skills are therefore, rigorously,
+prompt and elicitation optimization bounded by the base model's latent knowledge, not autonomous
+discovery. Genuine novelty requires an external source of the new procedure: human curation, or
+a correct verifier plus search.
+
+\para{Key takeaway.} The way to make sure a skill is new knowledge is to measure
+self-generability (\SG) and length-controlled gain (\LCG) and to check whether verifier-only
+self-evolution stalls --- never to trust novel-sounding text.
+
+\para{Future work.} We plan to (1) build a novel-\emph{procedure} task whose correct procedure is
+executable by the model but not latent, to seek a positive novelty result beyond declarative
+facts; (2) port the \SG/\LCG discriminator onto SkillsBench's real agentic tasks; (3) add a
+verifier-hacking probe~\citep{redqueen} to the self-evolution loop; and (4) test whether
+verifier-plus-search~\citep{alphaevolve} on our substrate discovers procedures no single model
+can self-generate --- the constructive complement to this study's negative result.

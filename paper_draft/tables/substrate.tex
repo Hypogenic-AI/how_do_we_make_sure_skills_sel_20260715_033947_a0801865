@@ -1,0 +1,20 @@
+\begin{table}[t]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}lllp{6.4cm}@{}}
+        \toprule
+        \textbf{Setting} & \textbf{Task} & \textbf{Regime} & \textbf{What a skill \emph{could} be} \\
+        \midrule
+        \arithbten & base-10 3-digit multiplication & elicitation & re-elicit a latent, reliable skill \\
+        \vocabes & Spanish$\to$English (24-word glossary) & elicitation & re-elicit words the model already knows \\
+        \arithbnine, \arithbeleven & base-9 / base-11 3-digit multiplication & novelty-procedure & scaffold a latent-but-unreliable procedure \\
+        \vocabzeth & invented-language (``\zeth'')$\to$English & novelty-information & supply information the model provably cannot have (glossary randomly generated at run time) \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{The controlled substrate. We dial the regime from \emph{elicitation} (procedure is
+    in-distribution, a skill can only re-elicit) to \emph{novelty}. \vocabzeth is the cleanest
+    novelty case: its 24 word mappings are randomly generated per run, so they cannot appear in
+    any training corpus, yet answers are deterministically checkable.}
+    \label{tab:substrate}
+\end{table}

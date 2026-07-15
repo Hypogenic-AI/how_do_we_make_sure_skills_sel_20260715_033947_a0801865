@@ -1,0 +1,1 @@
+{"content": "I need to calculate 102 * 958.\n\n102 * 958\n= 102 * (1000 - 42)\n= 102,000 - 4,284\n= 97,716\n\n**97716**", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 57}

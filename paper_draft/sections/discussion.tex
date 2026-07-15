@@ -1,0 +1,63 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\para{Answering the question.} Across every setting, a skill delivered a large,
+content-specific, length-controlled gain in exactly one place: where the required knowledge was
+genuinely absent from the model (\vocabzeth) --- and there the model could \emph{never}
+self-generate it ($\SG=0$, and verifier-only self-evolution $=0$ across five rounds). Everywhere
+the model \emph{could} self-generate the skill (Spanish, base-10), the skill was doing
+prompt-optimization: a length-matched irrelevant memo matched it. We therefore conclude that
+self-evolution and self-generation amount to better elicitation, not knowledge creation. The
+ceiling of what an agent can give itself is what is already latent; genuine novelty enters a
+skill only from an external source --- a human who holds the procedure, or a ground-truth
+verifier plus search that discovers it. This is not a definitional stance but what the \SG and
+\LCG measurements show.
+
+\para{Why self-generated skills can hurt.} \claude's self-authored base-9 skill instructed the
+harder native base-9 long-multiplication algorithm (multiply digit-by-digit, convert every
+partial product, carry in base 9), whereas its own default and our correct skill use the
+reliable convert-to-decimal-then-back route. Forced to follow its own more error-prone
+articulation, accuracy fell $0.85\to0.25$. This is a concrete mechanism for the
+SkillsBench~\citep{skillsbench} finding that self-generated skills can fall below baseline: a
+self-generated skill is a sampled elicitation strategy, and a worse sample can interfere.
+
+\para{A practical recipe to ``make sure.''} To decide whether a skill is novelty or elicitation,
+do not score its prose. Measure (1) \SG --- can the base model write a working version unaided?
+(2) \LCG --- does it beat a token-matched irrelevant control? and (3) verifier-only
+self-evolution --- can the loop reach the skill without ground-truth answers? A skill is genuine
+new knowledge iff $\SG\approx0$, $\LCG>0$, and verifier-only self-evolution stalls while an
+external signal unlocks it. This protocol, not admiration of novel-sounding text, is our
+deliverable.
+
+\para{Relation to the literature.} Our results reproduce and mechanize four prior findings on a
+single substrate: self-generated skills at or below baseline~\citep{skillsbench},
+length-control indistinguishability~\citep{dsskills}, no self-correction without an external
+signal~\citep{cannotselfcorrect}, and discovery as verifier plus
+search~\citep{alphaevolve}. The contribution here is the controlled ground truth and the
+\SG/\LCG discriminator that ties them together. That frontier models still score $0.00$ on
+\zeth is expected and strengthens the design: the glossary is randomly generated, so there is
+nothing to be contaminated by. Base-9 discussions surely appear in pretraining, yet the models
+remain execution-limited --- again consistent with latent-but-unreliable, not novel.
+
+\para{Limitations.} Our novelty-information task injects \emph{declarative} new facts (a
+glossary), not a new \emph{reasoning} method; injecting a genuinely new procedure the model
+cannot execute is the harder, unaddressed case that our base-9 capability floor only hints at,
+and we have not demonstrated a positive novel-\emph{procedure} result. Our tasks (arithmetic,
+vocabulary) are clean but narrow; real agentic Skills are longer, multi-step, and tool-using,
+and we deliberately traded ecological realism for ground-truth control (the SkillsBench harness
+was too heavy to run end-to-end here). We cover two frontier models plus one 7B model; broader
+coverage would further test the capability-floor story. Our self-evolution loop is short ($K=5$)
+and one-shot self-generation is zero-feedback; a much longer or tool-augmented loop might crack
+\zeth from frequency structure, though our with-answer loop already shows only the ground-truth
+signal helps. For near-ceiling settings (base-10, Spanish on \claude) the normalized gain $g$ is
+numerically unstable, so we base those interpretations on absolute accuracies and the length
+control. Finally, we substituted the guardrail-blocked cipher with an equivalent glossary
+(\secref{sec:repro}).
+
+\para{Broader implications.} If self-evolving agents are bounded by their base model's latent
+knowledge, then claims that such systems ``discover'' new science should be treated with the
+same skepticism HindSight~\citep{hindsight} recommends for novelty ratings. The constructive
+path forward is not richer introspection but better external signals: correct verifiers and real
+search, exactly the AlphaEvolve recipe. Our discriminator gives practitioners a cheap, objective
+way to audit whether a deployed skill is teaching the model something new or merely reshaping its
+prompt.

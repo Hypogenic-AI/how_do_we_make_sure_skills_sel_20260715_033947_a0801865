@@ -1,0 +1,21 @@
+\begin{table}[t]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}llccc@{}}
+        \toprule
+        \textbf{Setting} & \textbf{knowledge} & \textbf{verifier-only (iter 1$\to$5)} & \textbf{with-answer (iter 1$\to$5)} & \textbf{correct-skill ceiling} \\
+        \midrule
+        \arithbnine (novelty-proc) & latent   & $0.28 \to 0.08 \to 0.90 \to 0.95 \to \mathbf{0.93}$ & $0.38 \to 0.95 \to \cdots \to \mathbf{0.95}$ & 0.875 \\
+        \vocabzeth (novelty-info)  & absent   & $0.00 \to 0.00 \to 0.00 \to 0.00 \to \mathbf{0.00}$ & $\mathbf{0.85}$ (from iter 1, stable) & 1.000 \\
+        \vocabes (elicitation)     & latent   & $\sim0.87$ (flat)                                   & $\sim0.90$ (flat, near ceiling)          & 1.000 \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Exp~2: self-evolution learning curves} (\claude, $K=5$, disjoint 40-item
+    test set). Verifier-only self-evolution never moves \vocabzeth off $0.00$ across all five
+    iterations --- pass/fail leaks essentially no information about 24 arbitrary word mappings
+    --- but with-answer feedback reaches $0.85$ immediately. For the \emph{latent} base-9
+    procedure, verifier-only self-evolution recovers on its own, because it is eliciting
+    knowledge already present.}
+    \label{tab:exp2}
+\end{table}

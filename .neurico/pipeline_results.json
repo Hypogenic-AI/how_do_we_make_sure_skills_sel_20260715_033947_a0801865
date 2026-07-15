@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "stages": {
+    "resource_finder": {
+      "success": true,
+      "completion_marker": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/.resource_finder_complete",
+      "outputs": {
+        "literature_review": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/literature_review.md",
+        "resources_catalog": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/resources.md",
+        "papers_dir": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/papers",
+        "datasets_dir": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/datasets",
+        "code_dir": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/code"
+      },
+      "log_file": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/logs/resource_finder_claude.log",
+      "transcript_file": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/logs/resource_finder_claude_transcript.jsonl",
+      "elapsed_time": 875.6758692264557
+    },
+    "experiment_runner": {
+      "success": true,
+      "return_code": 0,
+      "elapsed_time": 2480.684890985489,
+      "log_file": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/logs/execution_claude.log",
+      "transcript_file": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865/logs/execution_claude_transcript.jsonl"
+    }
+  },
+  "work_dir": "/workspaces/how_do_we_make_sure_skills_sel_20260715_033947_a0801865"
+}

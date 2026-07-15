@@ -1,0 +1,799 @@
+You are an academic paper writer. Generate a complete NEURIPS style paper
+based on the experiment results provided.
+
+════════════════════════════════════════════════════════════════════════════════
+                         IMPORTANT: BEFORE YOU START
+════════════════════════════════════════════════════════════════════════════════
+
+Before writing any content, you MUST complete these steps:
+
+1. READ THE SKILL: Review the paper-writer skill at .claude/skills/paper-writer/SKILL.md
+2. READ THE STYLE GUIDE: Study templates/paper_writing/lab_style_guide.md carefully
+3. REVIEW EXAMPLES: Browse paper_examples/ for formatting and language patterns:
+   - Look at sections/1.introduction.tex for language style
+   - Look at tables/*.tex for table formatting
+   - Look at commands/*.tex for macro usage
+4. VERIFY COMMAND TEMPLATES: Command templates (math.tex, general.tex, macros.tex) are pre-copied to paper_draft/commands/
+
+CRITICAL: Reference example papers for FORMATTING and LANGUAGE STYLE only.
+Do NOT copy content, phrasing, or narrative structure from the example papers.
+The examples are in a different research domain - focus only on presentation style.
+
+════════════════════════════════════════════════════════════════════════════════
+                            EXPERIMENT REPORT
+════════════════════════════════════════════════════════════════════════════════
+
+# Are Skills / Self-Evolving agents *creating new knowledge*, or *better eliciting latent knowledge*?
+### An operational discriminator, validated on a controlled substrate with real frontier LLMs
+
+**Author:** automated research session · **Date:** 2026-07-15
+**Models:** `anthropic/claude-sonnet-4.5`, `openai/gpt-4.1` (via OpenRouter), `Qwen/Qwen2.5-7B-Instruct` (local LoRA)
+
+---
+
+## 1. Executive Summary
+
+When an LLM agent improves after receiving a "skill" (human-written or self-evolved), that gain
+can mean two very different things: the skill **injected genuinely-new, transferable knowledge** the
+model did not have (the "invented Attention/relativity" case), or it merely **re-elicited latent
+knowledge** the model already possessed (a dressed-up prompt optimization). The field's self-evolving
+systems are overwhelmingly black-box wrappers around a frozen base model, so this is an empirical
+question — but existing skill ablations only measure task pass-rate and cannot say *why* a skill helped.
+
+We built a controlled substrate where the ground-truth answer to "is this novel or latent?" is **known
+by construction**, and an **Elicitation–Novelty Discriminator (END)** of four measurable quantities.
+Across two frontier models and 3,000+ real API evaluations we find a sharp, consistent signature:
+
+- **A skill injects genuinely-new knowledge only when the model cannot self-generate it.** On an
+  invented-language glossary ("Zeth"), the correct skill lifts accuracy **0.00 → 1.00** (both models,
+  p < 10⁻⁴, Cohen's h = 3.14), while the model's *self-generated* skill and a length-matched control
+  both stay at **0.00**. This is the one unambiguous "new knowledge" case — and the model provably
+  cannot produce it alone.
+- **Self-evolution is bounded by what is latent + the external signal.** A Voyager/STaR-style
+  self-evolution loop **never** moves the Zeth task off 0.00 under *verifier-only* feedback across 5
+  iterations, but reaches **0.85** the moment it receives *ground-truth answers* — exactly the
+  AlphaEvolve lesson (the LLM proposes; an external verifier discovers). For a *latent-but-unreliable*
+  procedure (base-9 multiplication) self-evolution does recover (up to 0.95), because the knowledge was
+  already there to elicit.
+- **Self-generated skills can be actively harmful.** On base-9 multiplication Claude's own skill
+  *dropped* accuracy from 0.85 to **0.25** — it articulated a harder, more error-prone algorithm than
+  its own default — a concrete mechanism for the SkillsBench finding that self-generated skills fall
+  below baseline.
+- **The user's proposed "fine-tune the skill back into the weights" probe is real but method-dependent.**
+  Genuinely-new information (Zeth) *can* be written into weights and generalizes to held-out phrases
+  (**1.00** accuracy, no skill in context) — but only via **example-distillation**; fine-tuning on the
+  skill *document* leaves accuracy at **0.00**. A naive doc-finetune would wrongly declare real,
+  transferable knowledge to be "mere prompt optimization."
+
+**Bottom line for the research question:** current self-evolving / self-generated skills are, in the
+strict sense, **better elicitation, not knowledge creation** — because self-evolution cannot produce
+knowledge the base model lacks. Genuine novelty enters a skill **only from an external source** (a human
+who knows the procedure, or a ground-truth verifier + search that discovers it). The reliable way to
+"make sure" is to measure whether the model can self-generate the skill and whether the gain survives a
+length-matched control — not to admire novel-sounding text.
+
+---
+
+## 2. Research Question & Motivation
+
+> Is existing Skill / self-evolution creating new ideas, or just finding a better way to exploit what
+> LLMs have already learned? How can we *tell the two apart*?
+
+The user framed the crux precisely: an LLM that fails an IMO problem, then succeeds after being given (or
+self-developing) a skill "xxx geometry theory," may have (a) *recalled* a latent, pre-training-adjacent
+concept via better prompting, or (b) genuinely *acquired* a new procedure. Standard memorization tests
+cannot separate these (most training samples are seen once, so there is no over-fitting fingerprint), and
+the user noted that even the obvious probe — fine-tuning the skill back into weights — does not settle it.
+
+**Gap in prior work** (`literature_review.md`, 20 papers): 13/20 argue elicitation, only AlphaEvolve shows
+verifiable novelty — and that comes from an *external verifier + search*, not from the LLM introspecting.
+Crucially, every existing skill ablation (SkillsBench, the DS-skills ablation) measures only pass-rate
+*with vs. without* a skill; **none isolates whether the model could have produced the skill itself**, and
+none has a substrate where "novel vs. latent" is ground-truth-known. Subjective novelty judgments are
+worse than useless — HindSight shows LLM/human novelty ratings *anti-correlate* (ρ = −0.29) with real
+impact.
+
+---
+
+## 3. Methodology
+
+### 3.1 A controlled substrate where novelty is known by construction
+
+We use **counterfactual tasks** whose regime we can dial, all verified deterministically against
+computable ground truth (no LLM-as-judge, per the HindSight caveat):
+
+| Setting | Task | Regime | What a skill *could* be |
+|---|---|---|---|
+| `arith_b10` | base-10 3-digit multiplication | **elicitation** | re-elicit a latent, reliable skill |
+| `vocab_es` | Spanish→English (24-word glossary) | **elicitation** | re-elicit words the model already knows |
+| `arith_b9`, `arith_b11` | base-9 / base-11 3-digit multiplication | **novelty-procedure** | scaffold a latent-but-unreliable procedure (canonical counterfactual from *Reasoning or Reciting?*) |
+| `vocab_zeth` | invented-language ("Zeth")→English | **novelty-information** | supply information the model provably cannot have (glossary is randomly generated at run time) |
+
+`vocab_zeth` is the key construction: the 24-word glossary is generated from a fixed random seed, so the
+mapping **cannot** be in any training corpus. It is the cleanest lab analog of "a new theory the model has
+not memorized," yet its answers are exactly checkable.
+
+### 3.2 The Elicitation–Novelty Discriminator (END)
+
+For a skill *S* that improves a task, we measure four quantities (fixed base model, held-out test set):
+
+- **Normalized gain** g = (acc_S − acc₀)/(1 − acc₀).
+- **Self-Generation utility** SG = g(self-generated S) / g(correct S). High ⇒ the knowledge was already
+  latent (the model can write its own working skill) ⇒ elicitation.
+- **Length-Controlled Gain** LCG = g(correct S) − g(length-matched irrelevant filler). Isolates real
+  content from mere context-length / prompt-shape effects.
+- **Transfer**: does a skill formed on one variant help on an unseen one? (Exp 2/3 held-out splits.)
+
+**Signature predicted:** *elicitation* ⇒ small g, high SG, LCG ≈ 0. *Novelty* ⇒ large g, **low SG**,
+LCG > 0. The falsifiable claim: self-evolution/self-generation sits at the elicitation floor precisely
+because SG is low in the novelty regime (you cannot self-evolve knowledge you do not have).
+
+### 3.3 Three experiments (real models)
+
+- **Exp 1 — Discriminator.** 5 settings × 2 models × 4 conditions (no-skill / correct-skill /
+  self-generated-skill / length-matched control) × N=60 held-out items. Self-generated skills are written
+  by the model *unaided* (task description only, no answers) then reused on the test set.
+- **Exp 2 — Self-evolution loop.** A Voyager/STaR-style loop (K=5) that refines the model's *own* skill
+  from experience, under two feedback signals: **verifier-only** (pass/fail) vs. **with-answer**
+  (ground-truth revealed). Learning curve on a disjoint 40-item test set. Settings: `arith_b9`,
+  `vocab_zeth`, `vocab_es`. Model: claude-sonnet-4.5.
+- **Exp 3 — Internalization probe** (the user's proposed test, on the GPU). LoRA fine-tune
+  Qwen2.5-7B-Instruct to put the skill *into weights*, then test **without** the skill in context, on a
+  held-out split. Two fine-tuning modes: **doc** (train on the skill document) vs. **examples** (train on
+  input→output pairs). Settings: `vocab_zeth`, `arith_b9`.
+
+### 3.4 Reproducibility
+
+Seeds fixed at 42; temperature 0 (deterministic); all API responses cached to `results/llm_cache/`
+(≈3,000 calls). Deterministic verifiers in `src/tasks.py`. Bootstrap 95% CIs (5,000 resamples),
+two-proportion z-tests, Cohen's h effect sizes. LoRA: r=16, α=32, 3 epochs, lr 2e-4, bf16, single A6000.
+Hardware: 4× RTX A6000 (one used). Environment: Python 3.12, torch 2.5.1+cu124, transformers 4.56.2,
+peft. Full config and code in `src/`; raw outputs in `results/`.
+
+> **A note on provider guardrails.** Our original novelty-information task was a substitution cipher; the
+> Amazon Bedrock/Google guardrails on OpenRouter blocked it (`finish_reason: content_filter`) as
+> jailbreak-adjacent. We replaced it with the mathematically-equivalent but innocuous invented-glossary
+> task. This is documented honestly as it affects reproducibility.
+
+---
+
+## 4. Results
+
+### 4.1 Exp 1 — the discriminator separates the regimes cleanly
+
+Accuracy by condition (N=60, bootstrap 95% CI in `results/exp1_summary.csv`; figure
+`figures/exp1_condition_bars.png`):
+
+| Model | Setting | Regime | no-skill | correct | self-gen | length-ctrl |
+|---|---|---|---:|---:|---:|---:|
+| claude-sonnet-4.5 | arith_b10 | elicitation | 0.983 | 0.967 | 0.983 | 0.950 |
+| claude-sonnet-4.5 | vocab_es | elicitation | 0.950 | 1.000 | 1.000 | 0.950 |
+| claude-sonnet-4.5 | arith_b9 | novelty-proc | 0.850 | 0.883 | **0.250** | 0.850 |
+| claude-sonnet-4.5 | arith_b11 | novelty-proc | 0.767 | 0.683 | 0.767 | 0.750 |
+| claude-sonnet-4.5 | **vocab_zeth** | **novelty-info** | **0.000** | **1.000** | **0.000** | **0.000** |
+| gpt-4.1 | arith_b10 | elicitation | 0.417 | 0.700 | 0.367 | 0.250 |
+| gpt-4.1 | vocab_es | elicitation | 0.917 | 1.000 | 0.850 | 0.917 |
+| gpt-4.1 | arith_b9 | novelty-proc | 0.000 | 0.000 | 0.000 | 0.000 |
+| gpt-4.1 | arith_b11 | novelty-proc | 0.017 | 0.000 | 0.000 | 0.017 |
+| gpt-4.1 | **vocab_zeth** | **novelty-info** | **0.000** | **1.000** | **0.000** | **0.000** |
+
+Discriminator metrics (`results/discriminator.csv`; figure `figures/exp1_discriminator_scatter.png`):
+
+- **Novelty-information (`vocab_zeth`), both models:** g_correct = 1.00, **SG = 0.00**, **LCG = 1.00**,
+  p(correct vs base) < 10⁻⁴, Cohen's h = 3.14 (maximal). The correct skill is decisive; the
+  self-generated skill and the length-matched control are worthless. → **genuine new knowledge, and
+  un-self-generatable.**
+- **Elicitation (`vocab_es`, `arith_b10`):** self-generated ≈ correct (SG ≈ 1 for Spanish on Claude),
+  and a length-matched irrelevant memo does about as well as the "skill" (Spanish: 0.95 vs 0.95). →
+  **the skill is doing prompt-shaping, not teaching.** (GPT-4.1's base-10 multiplication is genuinely
+  execution-limited — the skill helps 0.42→0.70 — a scaffolding effect, still fully latent.)
+- **Novelty-procedure (`arith_b9/b11`):** the *correct* skill barely helps on Claude (execution, not
+  knowledge, is the bottleneck) and GPT-4.1 fails at ~0 regardless of skill (a **capability floor**: an
+  in-context skill cannot buy compute the model lacks). The **self-generated** base-9 skill *hurts*
+  (0.85 → 0.25).
+
+### 4.2 Exp 2 — self-evolution is bounded by latency + external signal
+
+Learning curves (`figures/exp2_self_evolution.png`), claude-sonnet-4.5, K=5:
+
+| Setting | verifier-only (iter1→5) | with-answer (iter1→5) | correct-skill ceiling |
+|---|---|---|---|
+| `arith_b9` (novelty-proc, **latent**) | 0.275 → 0.075 → 0.90 → 0.95 → **0.925** | 0.375 → 0.95 → … → **0.95** | 0.875 |
+| `vocab_zeth` (novelty-info, **absent**) | 0.00 → 0.00 → 0.00 → 0.00 → **0.00** | **0.85** (from iter 1, stable) | 1.000 |
+| `vocab_es` (elicitation) | ~0.87 (flat) | ~0.9 (flat, near ceiling) | 1.000 |
+
+The decisive contrast is `vocab_zeth`: **verifier-only self-evolution stays pinned at 0.00 for all five
+iterations** — pass/fail leaks essentially no information about 24 arbitrary word mappings, so
+introspection cannot manufacture them. The **instant** it receives ground-truth answers it climbs to 0.85
+(it copies the revealed mappings into a glossary). This is precisely the AlphaEvolve / "Cannot Self-Correct
+Yet" pattern: **an external, non-gameable signal is what turns self-evolution into discovery.** For the
+*latent* base-9 procedure, self-evolution recovers even from verifier-only feedback — because it is
+eliciting knowledge that was already present.
+
+### 4.3 Exp 3 — the "fine-tune it back" probe: real, but method-dependent
+
+Qwen2.5-7B-Instruct, held-out test, **no skill in the prompt** unless "in-context"
+(`figures/exp3_internalization.png`):
+
+| Setting | base (no skill) | in-context skill | LoRA on **document** | LoRA on **examples** |
+|---|---:|---:|---:|---:|
+| `vocab_zeth` (novelty-info) | 0.00 | 0.95 | **0.00** | **1.00** |
+| `arith_b9` (novelty-proc) | 0.00 | 0.00 | 0.00 | 0.00 |
+
+For Zeth, example-distillation writes the glossary **into the weights** so the model translates *held-out*
+phrases at 1.00 with nothing in context — proof that the skill encoded real, transferable knowledge, not a
+prompt trick. But fine-tuning on the *document* (the same information, as prose) internalizes **nothing**
+(0.00). The user's probe therefore *cannot* by itself classify a skill: its verdict flips with the
+fine-tuning recipe. For base-9 multiplication a 7B model fails at 0.00 in every condition — an in-context
+skill and light fine-tuning alike cannot supply executional capacity it lacks.
+
+---
+
+## 5. Analysis & Discussion
+
+**Answering the question.** Across every setting, a skill delivered a large, content-specific,
+length-controlled gain in **exactly one** place: where the required knowledge was genuinely absent from the
+model (`vocab_zeth`) — and there, the model could **never** self-generate it (SG = 0, and verifier-only
+self-evolution = 0 across five rounds). Everywhere the model *could* self-generate the skill (Spanish,
+base-10), the skill was doing prompt-optimization: a length-matched irrelevant memo matched it. Therefore:
+
+> **Self-evolution/self-generation ≈ better elicitation, not knowledge creation.** The ceiling of what an
+> agent can give *itself* is what is already latent. Genuine novelty enters a skill only from an external
+> source — a human who holds the procedure, or a ground-truth verifier + search that discovers it (the
+> AlphaEvolve pattern). This is not a definitional stance; it is what the SG and LCG measurements show.
+
+**Why self-generated skills can *hurt* (SkillsBench, mechanistically).** Claude's self-authored base-9
+skill instructed the harder *native* base-9 long-multiplication algorithm (multiply digit-by-digit,
+convert every partial product, carry in base 9), whereas its own default (and our correct skill) uses the
+reliable convert-to-decimal-then-back route. Forced to follow its own more error-prone articulation,
+accuracy fell 0.85 → 0.25. A self-generated skill is not new knowledge; it is a *sampled elicitation
+strategy*, and a worse one can interfere.
+
+**A practical recipe to "make sure."** To decide whether a skill is novelty or elicitation, don't score
+its prose. Measure: (1) **SG** — can the base model write a working version unaided? (2) **LCG** — does it
+beat a token-matched irrelevant control? (3) **verifier-only self-evolution** — can the loop reach the
+skill without ground-truth answers? A skill is *genuine new knowledge* iff SG ≈ 0, LCG > 0, and
+verifier-only self-evolution stalls while an external signal unlocks it. This protocol is the deliverable.
+
+**Relation to the literature.** Our results reproduce and *mechanize* four prior findings on one substrate:
+self-generated skills ≤ baseline (SkillsBench), length-control indistinguishability (DS-skills ablation),
+no self-correction without an external signal (Cannot-Self-Correct-Yet), and discovery = verifier + search
+(AlphaEvolve). The novelty here is the **controlled ground truth** and the **SG/LCG discriminator** that
+ties them together.
+
+**Contamination note.** That frontier models still score 0.00 on Zeth is expected and *strengthens* the
+design: the glossary is randomly generated, so there is nothing to be contaminated by. Base-9 discussions
+surely appear in pretraining, yet the models are execution-limited anyway — again consistent with
+"latent-but-unreliable," not "novel."
+
+---
+
+## 6. Limitations
+
+- **Scope of "novelty."** Our novelty-information task injects *declarative* new facts (a glossary), not a
+  new *reasoning* method à la Attention. Injecting a genuinely-new *procedure* the model cannot execute is
+  the harder, unaddressed case (our base-9 "capability floor" hints at it). The discriminator (SG, LCG)
+  should transfer, but we have not demonstrated a positive novel-*procedure* result.
+- **Two families, short tasks.** Arithmetic and vocabulary are clean but narrow; real agentic Skills
+  (SkillsBench) are longer, multi-step, and tool-using. We deliberately traded ecological realism for
+  ground-truth control; the SkillsBench harness (Docker/BenchFlow) was too heavy to run end-to-end here.
+- **Two frontier models + one 7B.** Broader model coverage (Gemini, larger open models) would test the
+  capability-floor story further.
+- **Self-generation operationalization.** We measured zero-feedback self-generation and a 5-step evolution
+  loop; a much longer or tool-augmented loop might crack Zeth from frequency structure — but note our
+  with-answer loop already shows that only ground-truth signal helps.
+- **Ceiling noise in normalized gain.** For near-ceiling settings (base-10, Spanish on Claude) g is
+  numerically unstable; we base those interpretations on absolute accuracies and the length control, not g.
+- **Provider guardrail substitution** (cipher → glossary) documented in §3.4.
+
+---
+
+## 7. Conclusions & Next Steps
+
+**Answer to the research question.** On a substrate where "new vs. latent" is known by construction,
+skills cross from *elicitation* into *genuine new knowledge* in exactly the cases the base model
+**cannot self-generate** the skill — and in those cases self-evolution from introspection or verifier-only
+feedback fails completely, recovering only when fed an external ground-truth signal. Today's self-evolving
+skills are therefore, rigorously, **prompt/elicitation optimization bounded by the base model's latent
+knowledge; not autonomous discovery.** Genuine novelty requires an external source of the new procedure
+(human curation, or a correct verifier + search). The way to "make sure" is to measure self-generability
+(SG) and length-controlled gain (LCG) — never to trust novel-sounding text.
+
+**Next steps.** (1) Build a *novel-procedure* task where the correct procedure is executable by the model
+but not latent, to seek a positive novelty result beyond declarative facts. (2) Port the SG/LCG
+discriminator onto SkillsBench's real agentic tasks. (3) Add a verifier-hacking probe (Red-Queen) to the
+self-evolution loop. (4) Test whether verifier+search (AlphaEvolve-style) on our substrate discovers
+procedures no single model can self-generate — the constructive complement to this study's negative result.
+
+---
+
+## References
+Key papers (full list and notes in `literature_review.md` / `resources.md`): Voyager (2305.16291),
+Self-Evolving Agents Survey (2508.07407), AlphaEvolve (2506.13131), SkillsBench (2602.12670), LLM-Skills
+DS Ablation (2607.07504), Library Drift (2605.19576), Reasoning or Reciting? (2307.02477), Emergent
+Abilities: Mirage? (2304.15004), LLMs Cannot Self-Correct Yet (2310.01798), STaR (2203.14465), HindSight
+(2603.15164), Promptbreeder (2309.16797).
+
+**Artifacts.** `src/` (harness), `results/` (raw JSON, CSV summaries, LLM cache), `figures/` (4 plots),
+`planning.md` (pre-registered design).
+
+
+════════════════════════════════════════════════════════════════════════════════
+                            RESEARCH PLAN
+════════════════════════════════════════════════════════════════════════════════
+
+# Research Plan: Is Skill/Self-Evolution *creating new knowledge* or *better eliciting latent knowledge*?
+
+## Research Question
+When an LLM agent gains performance from a "skill" (human-crafted or self-evolved), is the skill
+(a) **injecting genuinely-new, transferable procedure** the model did not already possess (the
+"invented Attention / General Relativity" case), or (b) **re-eliciting latent knowledge** the model
+already had, i.e. a dressed-up prompt-optimization? How can we operationally *tell the two apart*?
+
+---
+
+## Motivation & Novelty Assessment
+
+### Why This Research Matters
+Self-evolving agents and "Skills" (Voyager, Darwin Gödel Machine, Agent-Skills/SKILL.md, Promptbreeder)
+are being marketed as engines of discovery, but almost all are **black-box wrappers around a frozen base
+model** — they add no weights and no new training signal beyond what a verifier/environment already
+provides. If their gains are only better elicitation, the field is conflating *prompt optimization* with
+*knowledge creation*. Getting this distinction right determines whether "self-improving AI" is a path to
+new science or a plateau at the base model's latent ceiling.
+
+### Gap in Existing Work
+The literature (see `literature_review.md`) is lopsided: **13/20 papers** argue elicitation, only
+**1/20 (AlphaEvolve)** shows verifiable novelty — and that comes from an *external verifier + search*, not
+the LLM introspecting. Crucially, existing ablations (SkillsBench, the DS-skills ablation) measure only
+**task pass-rate** with/without a skill. **None isolates *why* a skill helps** — none separates "the model
+could have produced this itself" (latent) from "this is procedure the model cannot self-generate" (new).
+The user's own proposed probe (fine-tune the skill back into weights) is acknowledged as *insufficient*.
+There is no controlled substrate where "novel vs. latent" is **ground-truth-known**, so novelty claims rest
+on subjective LLM/human judgments — which HindSight shows *anti-correlate* (ρ=−0.29) with real impact.
+
+### Our Novel Contribution
+1. **A controlled substrate with known ground truth for novelty.** We use *counterfactual* tasks
+   (base-b arithmetic with b≠10; permuted-alphabet ciphers) where we can *dial* the regime:
+   - **Elicitation regime** (base-10 / identity cipher): the required procedure is provably in-distribution
+     (latent). A skill here can only *re-elicit*.
+   - **Novelty regime** (base-9/11 / permuted cipher): the correct procedure exists and is verifiable, but
+     is *out-of-distribution* — the closest lab analog to "a new theory the model has not memorized."
+   Ground truth is computable ⇒ a **deterministic verifier**, no LLM-as-judge.
+2. **The Elicitation–Novelty Discriminator (END)** — four measurable quantities that classify a skill's
+   benefit:
+   - **Normalized gain** g = (acc_skill − acc_base)/(1 − acc_base).
+   - **Self-Generation rate SG** — can the model, *unaided*, produce a skill that actually works? (measured
+     by whether its self-authored skill raises held-out accuracy). High SG ⇒ latent ⇒ elicitation.
+   - **Length-Controlled Gain LCG** = g(real skill) − g(length-matched irrelevant filler). Isolates content
+     from mere context-length/prompt-shape effects.
+   - **Transfer Gain TG** — does a skill formed on variant A help on an *unseen* variant B (base-9→base-11)?
+     Positive ⇒ transferable procedure; ~0 ⇒ task-specific recitation.
+3. **An empirical test of the user's "fine-tune it back" probe** (Exp 3, GPU): we internalize a
+   counterfactual skill into a small open model's weights (LoRA) and test whether that reproduces the
+   in-context gain and whether it *transfers* — showing what the fine-tune probe can and cannot resolve.
+
+### Falsifiable Predictions
+- **Elicitation regime:** high baseline, small g, **high SG**, gain collapses under length control. → skill = prompt-opt.
+- **Novelty regime:** baseline collapses (replicating Reasoning-or-Reciting), **large g** from the correct skill,
+  **low SG** (the model cannot self-generate the new procedure), **positive LCG**, **positive TG**. → skill injects
+  genuinely-new transferable procedure — but current *self-evolving* (self-generated) skills stay at the
+  elicitation floor **precisely because SG is low** (you cannot self-evolve knowledge you don't have).
+
+The unifying claim: **self-evolution is bounded by self-generation.** It equals elicitation whenever the
+needed procedure is latent; genuine novelty requires an *external* source of the new procedure (a human
+skill, or a verifier+search loop that discovers it), which self-introspection alone cannot supply.
+
+### Experiment Justification
+- **Exp 1 (core, real API):** Establishes the four END quantities across both regimes and ≥2 frontier models.
+  Needed to demonstrate the discriminator *works* and to answer the question quantitatively.
+- **Exp 2 (self-evolution loop, real API):** A Voyager-style iterative skill-refinement loop with verifier
+  feedback. Tests whether *actual self-evolution* (not one-shot self-generation) ever crosses the SG barrier
+  in the novelty regime. Directly tests the "self-evolving creates new ideas?" claim.
+- **Exp 3 (internalization probe, GPU):** Implements and stress-tests the user's proposed fine-tune-back
+  probe on Qwen2.5-7B. Needed because the user explicitly flagged it as an unresolved solution.
+
+---
+
+## Hypothesis Decomposition
+- **H1 (regime effect):** Adding the *correct* skill yields larger normalized gain in the novelty regime
+  than in the elicitation regime (a skill can only help a lot where latent knowledge is missing).
+- **H2 (self-generation gap):** SG is high in the elicitation regime and low in the novelty regime.
+- **H3 (content vs. length):** In the novelty regime, LCG > 0 (real skill beats length-matched filler);
+  in the elicitation regime LCG ≈ 0.
+- **H4 (transfer):** Correct skills show positive TG (transfer to unseen counterfactual variants);
+  self-generated skills in the novelty regime do not.
+- **H5 (self-evolution ceiling):** Iterative self-evolution in the novelty regime plateaus below the
+  correct-skill ceiling and near the no-skill floor when the base model cannot self-generate the procedure.
+- **H6 (internalization):** Fine-tuning the skill into weights reproduces part of the in-context gain but
+  does not by itself distinguish elicitation from novelty (transfer to unseen variants is the tell).
+
+## Proposed Methodology
+
+### Approach
+Controlled counterfactual experiments with **real LLM APIs** (via OpenRouter) + a small-model
+**LoRA internalization** probe on local GPU. Deterministic, computable verifiers throughout — no
+LLM-as-judge for the primary signals (per HindSight caveat).
+
+### Tasks / Substrate
+1. **Base-b arithmetic** (multi-digit addition/multiplication) — b ∈ {10 (elicitation), 9, 11 (novelty)}.
+   Following *Reasoning or Reciting?* (base-9 is the canonical counterfactual). Answers computed exactly.
+2. **Permuted-alphabet Caesar/substitution cipher decoding** — identity map (elicitation) vs. a fixed
+   random permutation (novelty). Exact string-match verifier.
+(Optional supplement: measure the Self-Generation gap on real **SkillsBench** human SKILL.md artifacts.)
+
+### Conditions (base model fixed)
+(a) No-Skill baseline · (b) Correct-Skill (explicit procedure) · (c) Self-Generated-Skill (model writes its
+own, then reused on held-out items) · (d) Length-matched irrelevant-content control · (e) Self-Evolved-Skill
+after K verifier-feedback iterations (Exp 2).
+
+### Baselines
+No-Skill prompting; length-matched control (Promptbreeder/prompt-opt stand-in); Correct-Skill as the
+*upper reference* (the "external new procedure" oracle, AlphaEvolve-style verifier ground truth).
+
+### Evaluation Metrics
+Deterministic accuracy; normalized gain g; Self-Generation rate SG; Length-Controlled Gain LCG;
+Transfer Gain TG; self-evolution learning curve. Report mean ± bootstrap 95% CI.
+
+### Statistical Analysis Plan
+- Per-cell N ≥ 100 problems; ≥2 models. Two-proportion z-tests / bootstrap for accuracy deltas.
+- Effect sizes (Cohen's h for proportions). Bonferroni across the main hypothesis family.
+- Seeds fixed (42); temperature 0 for determinism where supported; 3 seeds for self-generation stochastics.
+
+## Expected Outcomes
+Support for H1–H5 would show: skills *can* inject genuine novelty (novelty regime, correct skill), but
+self-evolution/self-generation stays at the elicitation floor because it cannot produce knowledge the model
+lacks. This is a crisp, falsifiable answer to the user's question with a reusable protocol.
+
+## Timeline & Milestones
+1. Env + harness (done/early). 2. Exp 1 core runs. 3. Exp 2 self-evolution loop. 4. Exp 3 GPU probe.
+5. Analysis + figures. 6. REPORT.md + README.md. (~20-30% buffer for API/GPU debugging.)
+
+## Potential Challenges
+- **Model refuses/format drift** → strict parsing + regex extraction + retries.
+- **API cost/rate limits** → temperature 0, caching to disk, modest N with adequate power.
+- **Contamination** (model has seen base-9 discussions) → that *strengthens* the test: if it still can't do
+  it, the novelty gap is real; we also use a *fresh* random cipher permutation per seed.
+- **GPU contention** (2/4 A6000 busy) → use a single free GPU, 7B + LoRA, small N.
+
+## Success Criteria
+A working END harness; quantitative values for g, SG, LCG, TG across regimes/models with CIs; a clear,
+statistically-supported verdict on when skills cross from elicitation to novelty; complete REPORT.md.
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          LITERATURE REVIEW
+════════════════════════════════════════════════════════════════════════════════
+
+# Literature Review
+
+**Research question.** *How do we make sure Skills / Self-Evolving agents are creating something NEW (e.g., inventing General Relativity or the Attention mechanism) rather than finding a better way to EXPLOIT / elicit what LLMs have already learned (i.e., glorified prompt optimization)?*
+
+This review synthesizes 20 papers (downloaded in `papers/`, per-paper structured notes in `notes_compact.json`). It (1) frames the question as an empirical one, (2) reports where the evidence currently falls, (3) catalogs the *measurement methods* that can actually distinguish the two hypotheses, and (4) recommends a concrete experimental design.
+
+---
+
+## 1. Research Area Overview
+
+Two literatures collide here:
+
+- **The "self-evolving" / "skills" systems literature** — agents that accumulate reusable procedural knowledge (Voyager's executable-code skill library [1]; the SKILL.md "agent skills" abstraction [3]), or that rewrite their own code/prompts (Darwin Gödel Machine [4], Promptbreeder [7], the AI Scientist [5], AlphaEvolve [9]). The self-evolving-agents survey [2] formalizes this as a feedback loop (System Inputs → Agent → Environment → Optimiser) and a paradigm shift from offline pretraining toward online, lifelong self-modification. Schmidhuber's Gödel Machine [6] is the theoretical ideal these approximate.
+- **The "is it real?" evaluation literature** — work that asks whether apparent gains reflect *new* capability or *re-packaged latent* capability: counterfactual evaluation [16], the "emergent abilities are a metric mirage" critique [17], "LLMs cannot self-correct reasoning yet" [18], and STaR-style self-bootstrapping [19]. Plus a fast-growing *idea-novelty* measurement strand [10, 11, 12].
+
+The central conceptual point, made explicit by several papers, is that **most self-evolving methods are black-box wrappers around a frozen base model.** They add no weights and no new training signal beyond what the environment/verifier provides; they *search over the model's existing behavior manifold*. Voyager's own authors describe it as harnessing "the world knowledge encapsulated in pre-trained LLMs" and as "an in-context form of novelty search" [1]. This makes the hypothesis — *elicitation/prompt-optimization vs. genuine novelty* — a testable empirical claim, not a matter of definition.
+
+**Where the evidence falls (this corpus).** Coding each paper by which side of the question it supports: **13/20 argue elicitation / prompt-optimization**, **4/20 mixed-or-neutral**, **2/20 provide a measurement method**, and **only 1/20 (AlphaEvolve) argues for genuine, verifiable novelty** — and even that one owes its novelty to a ground-truth evaluator, not to the LLM inventing concepts unaided (see §4).
+
+---
+
+## 2. The case that self-evolving ≈ better elicitation / prompt optimization
+
+The strongest evidence is from **controlled, paired ablations that hold the base model fixed** and vary only the "skill"/"evolution" component.
+
+- **SkillsBench [14]** — 87 expertise-heavy, containerized tasks with deterministic verifiers, run *with vs. without* Skills across 18 agent×model configurations. **Human-curated** Skills raise average pass rate **33.9% → 50.5% (+16.6 pp)**, improving all 18 configs. But **agent self-generated Skills fall *below* the no-Skills baseline** (−8.1 to −11.5 pp). The lift comes from *human* procedural knowledge injected into context, not from anything the agent discovered about itself. There is **no novelty/discovery metric** — it measures task resolution only.
+- **Library Drift [13]** — self-evolving skill libraries silently degrade ("drift") without outcome-driven lifecycle governance. Even the *working* fix produces skills that are re-elicited procedural shortcuts; the **no-injection ablation floor is +0.002 ± 0.005** (i.e., an accumulating bank of 42 skills that are never injected adds essentially nothing), and over-aggressive retirement drops *below* baseline. Gains depend entirely on outcome-driven curation, not on emergent capability.
+- **"Do LLM-Generated Skills Make Better AI Data Scientists?" [15]** — a clean component ablation: across 5 conditions the total spread is **1.2 pp** (No-Skill 68.3% vs Full 67.5%), **none significant (all p ≥ 0.396)**, and Full is **statistically indistinguishable from a token-matched Length-Control** of irrelevant content (+0.6 pp, p=0.775). On some stages the LLM skill *harms* (Data Preparation 57.1→50.8). Low-curation LLM-generated skills add no reliable value over the base prompt.
+- **Inefficiencies of Meta-Agents [8]** — ADAS-style meta-agents that "design" new agents **do not meaningfully learn from prior designs**, produce behaviorally near-duplicate agents, and the best "evolved" agent often only ties the best *initial-library* agent (MMLU: Initial 62.8 vs 66–68). Meta-designed agents are always *costlier* at inference, and break-even vs. human-designed agents only occurs at ~15,000 examples. The "evolution" mostly reshuffles known building blocks.
+- **Promptbreeder [7]** is the honest limiting case: it is explicitly *prompt search*. It improves benchmarks by evolving task-prompts and mutation-prompts — a better way to elicit CoT, not a new reasoning capability.
+- **Voyager [1]** — "novelty" is operationalized as *count of unique Minecraft items* within a fixed, human-designed tech tree (novel *to the agent*, not to human knowledge). Swapping GPT-4→GPT-3.5 yields **5.7× fewer items**: the ceiling is set by the base model's latent coding knowledge. Hallucinated non-existent items are logged as failures — the agent operates strictly *within* its learned distribution.
+
+**Foundational reasons this is expected:**
+- **Reasoning or Reciting? [16]** — on *counterfactual* task variants (same procedure, altered input–output mapping, e.g. base-9 arithmetic) performance collapses across 11 tasks / 4 models, while comprehension checks stay high. Much apparent "reasoning" is memorized recitation — so eliciting it harder ≠ new reasoning.
+- **Emergent Abilities: A Mirage? [17]** — sharp "new" capabilities are often artifacts of discontinuous metrics + small test sets. A claimed novel ability can vanish under a linear metric. Any "self-evolving unlocked a new skill" claim must rule this out.
+- **LLMs Cannot Self-Correct Reasoning Yet [18]** — *without an external signal*, self-refinement does **not** add correctness and often degrades it; prior gains trace to oracle labels or unfair compute comparisons. This is the crux: self-evolution needs an **external ground-truth signal** to add anything real.
+- **STaR [19]** — even self-improvement that *does* work (bootstrapping correct rationales) is gated by an external correctness filter; it amplifies rationales the model can already produce and verify, i.e. elicitation under a verifier.
+
+---
+
+## 3. The idea-novelty strand: novel-*sounding* ≠ novel-*and-real*
+
+- **Can LLMs Generate Novel Research Ideas? [10]** — in a blind study with 100+ NLP researchers, a simple RAG + overgenerate-and-rank agent produces ideas rated **more novel** than experts' (5.64 vs 4.84, p<0.01). *But* the same system hits a **diversity ceiling** (~200 unique ideas out of 4000 generated) and is slightly *less feasible* — consistent with recombination of retrieved knowledge rather than genuine conceptual leaps.
+- **Nova [11]** raises measured novelty via iterative retrieval-planning — i.e., novelty scales with *how much external knowledge you feed in*, which is elicitation-by-retrieval, not intrinsic invention.
+- **HindSight [12]** exposes *why* novelty ratings are untrustworthy: LLM-as-judge (and humans) reward novel-*sounding* framing that is **negatively correlated** with real future impact (Spearman ρ = −0.29 between its impact-grounded metric and judged Novelty). This is a direct warning: subjective novelty scores can be *inversely* related to genuine discovery.
+
+---
+
+## 4. The one clear counterexample — and what makes it different
+
+**AlphaEvolve [9]** is the corpus's strongest case for *genuine, verifiable* new results: a rank-48 decomposition for 4×4 complex matrix multiplication (**first improvement over Strassen's 49 in 56 years**), improvements on 14 matrix-multiplication targets, surpassing best-known bounds on ~20% of 50+ open math problems (e.g., kissing number in 11D: 592→593), and deployed engineering wins (0.7% of Google's fleet-wide compute recovered; 23% matmul-kernel speedup).
+
+Crucially, its novelty does **not** come from the LLM introspecting or "self-improving" in a vacuum. It comes from **(a) evolutionary search over program space + (b) an automated, ground-truth evaluator** (tensor rank + provable correctness) that provides an *external, non-gameable* signal. This aligns exactly with [18]: the LLM proposes; a verifier disposes; search does the discovery. The lesson for "how do we make sure": **genuine novelty appears where there is a cheap, correct, external verifier and a real search loop — not where an agent merely reorganizes its context.**
+
+**Governance caveats.** The **Red Queen Gödel Machine [20]** and **Library Drift [13]** warn that once you *learn* the evaluator or let the library self-curate, you get **verifier-hacking / drift**: the agent optimizes the measurement, not the target. The **Gödel Machine [6]** ideal (only self-modify on a *proof* of improvement) and the AI Scientist [5] (which auto-generates *and* auto-reviews its own papers — a conflicted signal at ~$15/paper) bracket the design space between "provably grounded" and "self-graded and gameable."
+
+---
+
+## 5. Measurement methods — how to actually "make sure" (the deliverable)
+
+The literature offers four complementary discriminators between *elicitation* and *novelty*:
+
+1. **Paired with/without ablation, base model fixed** [14, 15] — the minimal control. If a "skill" helps, it must beat the *no-skill* baseline **and** a **token/length-matched irrelevant-content control** [15] (else you are only measuring context length).
+2. **Human-curated vs. self-generated skill** [14] — if self-generated skills match no-skill (or lose), the system is not *discovering*; it is *re-eliciting* what humans already encode.
+3. **Contamination / recitation controls** — counterfactual task variants [16] and **time-split / future-impact** evaluation [12] separate memorized-and-recited from transferable-and-new. Any novelty claim must survive a held-out, post-cutoff, or counterfactual split.
+4. **Metric-artifact controls** [17] — report linear/continuous metrics and adequate test-set sizes so a "new ability" cannot be a thresholding illusion.
+5. **External, non-gameable verifier + search** [9, 18, 19] vs. self-grading [5, 20] — attribute any gain to the *verifier + search*, and audit for verifier-hacking/drift [13, 20].
+
+---
+
+## 6. Recommendations for Our Experiment
+
+**Recommended substrate: SkillsBench [14]** (cloned to `code/skillsbench/`, 87 tasks, 8 domains, deterministic verifiers, oracle solutions). It already ships the paired with/without-Skills harness and the crucial datum that human-curated skills help (+16.6 pp) while self-generated ones do not — the perfect testbed for the core question.
+
+**Core experiment — a "novelty vs. elicitation" discriminator on SkillsBench:**
+- **Conditions (fixed base model):** (a) No-Skill baseline; (b) Human-curated skill; (c) Agent self-generated skill; (d) **Length-matched irrelevant-content control** [15]; (e) self-generated skill after outcome-driven curation [13].
+- **Primary metric:** deterministic-verifier pass rate + **normalized gain** g = (pass_skill − pass_vanilla)/(1 − pass_vanilla) [14]. Focus on the **17 "informative" tasks** (30–80% baseline) where the skill can actually move the needle [15].
+- **Discriminating tests:** (i) does (c) beat (a) *and* (d)? (ii) does (c) close the gap to (b), or plateau at the elicitation floor? (iii) **transfer probe** — construct held-out / counterfactual [16] or post-cutoff [12] task variants and check whether the skill encodes *transferable new procedure* vs. task-specific recitation.
+- **Attribution / anti-hacking:** track skill-invocation rate [14], per-skill contribution c(s) and drift verdicts [13]; use a *frozen external* verifier and explicitly test for verifier-hacking [20].
+
+**Recommended baselines:** No-Skill prompting; human-curated Skills [14]; Promptbreeder-style prompt optimization [7] (to show "just prompt-opt"); AlphaEvolve-style search-with-verifier [9] as the *genuine-novelty upper reference* where a task admits a ground-truth evaluator.
+
+**Recommended metrics:** verifier pass rate, normalized gain g, length-control delta, transfer/counterfactual gap, contribution/drift diagnostics — and **explicitly avoid LLM-as-judge novelty scores as a primary signal**, since [12] shows they anti-correlate with real impact.
+
+**Expected contribution.** A crisp, reusable protocol (and result) showing *under what conditions* self-evolving skills cross from re-eliciting latent knowledge to encoding genuinely new, transferable procedure — with the falsifiable prediction (from [13, 14, 15]) that **without an external ground-truth verifier and real search, self-generated skills sit at the elicitation floor (≈ no-skill), and only human curation or verifier-driven search (AlphaEvolve-style) produces gains that survive length-control and transfer tests.**
+
+---
+
+## References (see `papers/README.md` for files & arXiv IDs)
+
+[1] Voyager (2305.16291) · [2] Self-Evolving Agents Survey (2508.07407) · [3] Agent Skills Survey (2602.12430) · [4] Darwin Gödel Machine (2505.22954) · [5] The AI Scientist (2408.06292) · [6] Gödel Machines (cs/0309048) · [7] Promptbreeder (2309.16797) · [8] Inefficiencies of Meta-Agents (2510.06711) · [9] AlphaEvolve (2506.13131) · [10] Can LLMs Generate Novel Ideas? (2409.04109) · [11] Nova (2410.14255) · [12] HindSight (2603.15164) · [13] Library Drift (2605.19576) · [14] SkillsBench (2602.12670) · [15] LLM-Skills Data-Scientist Ablation (2607.07504) · [16] Reasoning or Reciting? (2307.02477) · [17] Emergent Abilities: Mirage? (2304.15004) · [18] Cannot Self-Correct Yet (2310.01798) · [19] STaR (2203.14465) · [20] Red Queen Gödel Machine (2606.26294)
+
+
+════════════════════════════════════════════════════════════════════════════════
+                          PAPER REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+Generate a complete academic paper with the following structure:
+
+1. TITLE
+   - Clear, specific, informative
+   - Should convey main finding or contribution
+
+2. AUTHOR
+   - Use this exact author line in the \author{} block: Dixi Yao and NeuriCo
+
+3. ABSTRACT (150-250 words)
+   - Problem statement
+   - Approach
+   - Key results
+   - Significance
+
+4. INTRODUCTION
+   - Research problem and motivation
+   - Gap in existing work
+   - Our contribution (be specific)
+   - Paper organization
+
+5. RELATED WORK
+   - Organized by theme/approach
+   - Position our work relative to prior work
+   - Cite papers from literature review
+
+6. METHODOLOGY
+   - Clear description of approach
+   - Experimental setup
+   - Datasets used
+   - Evaluation metrics
+   - Baselines
+
+7. RESULTS
+   - Present results with tables and figures
+   - Statistical analysis
+   - Comparison to baselines
+   - Ablation studies (if applicable)
+
+8. DISCUSSION
+   - Interpretation of results
+   - Limitations
+   - Broader implications
+
+9. CONCLUSION
+   - Summary of contributions
+   - Key findings
+   - Future work
+
+10. REFERENCES
+   - BibTeX format
+   - All cited papers
+
+════════════════════════════════════════════════════════════════════════════════
+                          OUTPUT FORMAT
+════════════════════════════════════════════════════════════════════════════════
+
+Create a MODULAR LaTeX project with the following directory structure:
+
+paper_draft/
+├── main.tex              # Main file that imports all sections
+├── references.bib        # BibTeX references
+├── sections/
+│   ├── abstract.tex      # Abstract content
+│   ├── introduction.tex  # Introduction section
+│   ├── related_work.tex  # Related work section
+│   ├── methodology.tex   # Methodology section
+│   ├── results.tex       # Results section
+│   ├── discussion.tex    # Discussion section
+│   └── conclusion.tex    # Conclusion section
+├── figures/              # Directory for any generated figures
+├── tables/               # Directory for complex standalone tables
+└── appendix/             # Directory for appendix sections (if needed)
+
+INSTRUCTIONS:
+1. First, create the directory structure above (mkdir -p paper_draft/sections paper_draft/figures paper_draft/tables paper_draft/appendix)
+2. Write main.tex using the EXACT preamble for NEURIPS:
+
+   \documentclass{article}
+   \usepackage[final]{neurips_2025}  % NEURIPS style (neurips_2025.sty is in paper_draft/)
+   \usepackage[hidelinks]{hyperref}  % REQUIRED: clickable links
+   \usepackage{booktabs}  % REQUIRED: professional tables
+   \usepackage{graphicx}
+   \usepackage{amsmath,amssymb}
+
+   % Import command files
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+   % Use this bibliography style:
+   \bibliographystyle{plainnat}
+
+   \author{Dixi Yao and NeuriCo}
+
+   - Use \input{sections/...} to include each section
+   - Use \bibliography{references} for references
+3. Write each section file with COMPLETE content (no placeholders)
+4. Each section file should include its \section{} command
+5. Write references.bib with all citations in BibTeX format
+6. After writing all files, compile the paper:
+   cd paper_draft && pdflatex -interaction=nonstopmode main.tex && bibtex main && pdflatex -interaction=nonstopmode main.tex && pdflatex -interaction=nonstopmode main.tex
+
+This modular structure allows humans to easily:
+- Edit individual sections without navigating a large file
+- Track changes per section
+- Reuse sections across different paper versions
+
+════════════════════════════════════════════════════════════════════════════════
+                          QUALITY REQUIREMENTS
+════════════════════════════════════════════════════════════════════════════════
+
+- Academic tone throughout
+- All claims must be supported by data from the experiment report
+- Proper citations using \cite{} commands
+- Clear figures and tables with proper captions
+- NO placeholder text - every section must have real content
+- The paper MUST compile without errors
+- If compilation fails, debug and fix the LaTeX errors
+
+════════════════════════════════════════════════════════════════════════════════
+                          LAB WRITING STYLE
+════════════════════════════════════════════════════════════════════════════════
+
+Follow these lab-specific conventions to match our paper style:
+
+1. LANGUAGE STYLE:
+   - Use active voice: "We propose", "We examine", "We focus on"
+   - Be direct and confident: "Our main question is...", "We hypothesize that..."
+   - State things clearly and simply - prefer plain language over jargon
+   - Use bold questions as paragraph organizers: {\bf what is X?}
+   - Include specific quantitative claims: "8.97% over baseline"
+   - Avoid fancy wording: "utilize" → "use", "facilitate" → "help"
+
+2. INTRODUCTION STRUCTURE:
+   - Engaging hook (get to the point quickly)
+   - Problem importance
+   - Gap identification
+   - Your approach with method figure reference
+   - Quantitative preview of results
+   - Contribution bullets (3-4 items, action verbs)
+
+3. CONTRIBUTION LISTS:
+   \begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+       \item We propose...
+       \item We conduct...
+       \item We complement...
+   \end{itemize}
+
+4. MODULAR COMMANDS STRUCTURE:
+   Command templates are pre-copied to paper_draft/commands/:
+   - math.tex: Math notation macros
+   - general.tex: Formatting macros
+   - macros.tex: Project-specific term definitions (customize this for your paper)
+
+   In main.tex, include:
+   \input{commands/math}
+   \input{commands/general}
+   \input{commands/macros}
+
+5. REFERENCE CONVENTIONS:
+   Use reference macros from math.tex:
+   - \figref{fig:name} for "figure 1" (lowercase, in-sentence)
+   - \Figref{fig:name} for "Figure 1" (capitalized, start of sentence)
+   - \secref{sec:name} for "section 2"
+
+6. TEXT FORMATTING:
+   - Use \para{Header text} for bold paragraph headers
+   - Define method/dataset names with \textsc and \xspace:
+     \newcommand{\methodname}{\textsc{MethodName}\xspace}
+
+7. TABLE FORMATTING:
+   - Use booktabs package (no vertical lines)
+   - Use \resizebox{\textwidth}{!}{...} for wide tables
+   - Use @{} to remove padding at table edges
+   - Use \cmidrule(lr){x-y} for sub-headers
+   - Use \textsc{} for dataset/method names in headers
+   - Bold best results with {\bf ...}
+
+8. FIGURE FORMATTING:
+   - Use 0.32\textwidth for 3-column subfigures
+   - Use 0.95\linewidth for full-width figures
+   - Use \input{figures/legend} for shared legends
+   - Write self-contained captions explaining key observations
+
+9. RESULTS PRESENTATION:
+   - Define \increase and \decrease for colored arrows (green up, red down)
+   - Bold best results in tables
+   - Report confidence intervals when available
+
+10. ALGORITHM STYLING:
+    - Use algpseudocode with [noend]
+    - Use \triangleright for comments
+
+11. HYPERLINKS (REQUIRED):
+    - Always use \usepackage[hidelinks]{hyperref} or with colored links
+    - All citations, section refs, figure refs, table refs must be clickable
+    - This is essential for reader navigation
+
+════════════════════════════════════════════════════════════════════════════════
+                          WORKFLOW: REVIEW AND REFLECT
+════════════════════════════════════════════════════════════════════════════════
+
+Before calling finish, you MUST complete these review steps:
+
+1. REVIEW RESOURCES (at the start):
+   - Read .claude/skills/paper-writer/SKILL.md for detailed guidance
+   - Study templates/paper_writing/lab_style_guide.md for style conventions
+   - Browse paper_examples/ for formatting and language patterns
+
+2. SELF-REFLECTION (before finishing):
+   After writing all sections, review your work against these criteria:
+
+   LANGUAGE CHECK:
+   - [ ] Is the writing clear and jargon-free?
+   - [ ] Are claims specific with quantitative support?
+   - [ ] Is active voice used throughout?
+
+   FORMATTING CHECK:
+   - [ ] Does main.tex include \input{commands/math}, \input{commands/general}, \input{commands/macros}?
+   - [ ] Is hyperref package included for clickable references?
+   - [ ] Do tables use booktabs (no vertical lines)?
+   - [ ] Are best results bolded in tables?
+   - [ ] Are figures/tables properly captioned?
+
+   STRUCTURE CHECK:
+   - [ ] Does introduction follow: hook → importance → gap → approach → preview → contributions?
+   - [ ] Are contribution bullets specific with action verbs?
+   - [ ] Does the paper compile without errors?
+
+3. FIX ISSUES:
+   - Address any issues found in the self-reflection
+   - Re-compile and verify the PDF looks correct
+
+Only after completing this review should you consider the paper finished.

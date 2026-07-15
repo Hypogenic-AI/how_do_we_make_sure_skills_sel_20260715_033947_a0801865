@@ -1,0 +1,829 @@
+[
+ {
+  "file": "2305.16291_Voyager.pdf",
+  "title": "VOYAGER: An Open-Ended Embodied Agent with Large Language Models",
+  "year": "2023",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "VOYAGER is a GPT-4-driven lifelong-learning Minecraft agent that builds an ever-growing library of reusable executable-code \"skills\" via an automatic curriculum and iterative self-verification, outperforming prior LLM-agent baselines on exploration, tech-tree progression, and generalization to new worlds.",
+  "key_results": "Discovers 63 unique items in 160 iterations = 3.3x more unique items than baselines; travels 2.3x longer distances; unlocks tech-tree milestones up to 15.3x faster (wooden 15.3x, stone 8.5x, iron 6.4x) and is the only method to unlock the diamond tool (1/3 trials, 102 iters). Iron tool: VOYAGER 21\u00b17 iters vs AutoGPT 135\u00b1103 (ReAct/Reflexion 0/3). Zero-shot new-world tasks: VOYAGER solves all 4 tasks 3/3 (e.g., diamond pickaxe 19\u00b13 iters) while ReAct/Reflexion/AutoGPT solve 0/3; skill library also boosts AutoGPT. Ablations: random curriculum -93% items, removing self-verification -73% items, GPT-3.5 code gen yields 5.7x fewer items than GPT-4.",
+  "how_it_relates": "This is the archetypal \"LLM writes reusable skills\" self-evolving agent, so it is the central test case for the review's question. Critically, the paper itself frames the agent as harnessing \"the world knowledge encapsulated in pre-trained LLMs\" and \"the internet-scale knowledge contained within GPT-4\"; the \"novelty\" it demonstrates is discovery of items/behaviors that are novel to the agent within a fixed, human-designed game (Minecraft), not the invention of concepts absent from the training distribution. The skill library is essentially learned in-context orchestration/retrieval of code that GPT-4 can already produce, and the ablation showing GPT-3.5 gets 5.7x fewer items confirms performance is bounded by the base model's latent coding knowledge. This strongly supports the \"elicitation\" side: self-evolving here compounds and better exploits latent LLM knowledge rather than creating genuinely new ideas. It offers no metric of conceptual novelty relative to the training corpus.",
+  "datasets": [
+   "Minecraft via MineDojo open-source framework (simulation environment)",
+   "Mineflayer JavaScript APIs for motor control",
+   "No offline training dataset; uses OpenAI APIs gpt-4-0314, gpt-3.5-turbo-0301, text-embedding-ada-002"
+  ],
+  "baselines": [
+   "ReAct",
+   "Reflexion",
+   "AutoGPT (re-implemented with GPT-4 for MineDojo)",
+   "AutoGPT w/ VOYAGER's skill library (for generalization)",
+   "VOYAGER w/o Skill Library (ablation)",
+   "VOYAGER w/ GPT-3.5 instead of GPT-4 (ablation)"
+  ],
+  "metrics": [
+   "Number of unique/novel items discovered (proxy for novelty/exploration)",
+   "Tech-tree milestone unlock speed in prompting iterations (wooden/stone/iron/diamond tool)",
+   "Map traversal distance",
+   "Zero-shot generalization to unseen tasks in a new world (success out of 3 trials, iterations to solve)",
+   "Ablation: % drop in discovered item count"
+  ],
+  "limitations": "High GPT-4 cost (15x GPT-3.5) and dependence on GPT-4's code-generation \"quantum leap\" that GPT-3.5/open-source LLMs cannot provide. Agent sometimes gets stuck failing to generate a correct skill; self-verification can misfire (e.g., not recognizing spider string as success). Hallucinations: curriculum proposes unachievable/nonexistent items (e.g. \"copper sword,\" \"copper chestplate\"), GPT-4 misuses invalid fuels (cobblestone) or calls nonexistent API functions. No visual perception (text-only GPT-4 at the time); 3D building requires human feedback. Notably, no evaluation of novelty relative to human knowledge \u2014 \"novelty\" is confined to items within a pre-existing game.",
+  "code": "https://voyager.minedojo.org (project page; code released, per project site)",
+  "evidence": "The paper's own language (\"harness the world knowledge encapsulated in pre-trained LLMs,\" \"capitalizes on the internet-scale knowledge contained within GPT-4,\" \"in-context form of novelty search\") frames the method as eliciting/orchestrating latent LLM knowledge, not generating knowledge outside it. \"Novelty\" is operationalized purely as count of unique Minecraft items and tech-tree milestones the agent has not previously obtained within a pre-existing human-designed game with a fixed tech tree \u2014 i.e. novelty to the agent, not to human knowledge. No mechanism produces concepts absent from GPT-4's training distribution: hallucinations (proposing nonexistent \"copper sword\") are noted as failures, underscoring that the agent operates within, not beyond, learned game knowledge. The GPT-3.5-vs-GPT-4 ablation (5.7x fewer items with the weaker model) shows capability ceiling is set by the base model's pretrained knowledge, and the skill library is a plug-and-play retrieval asset (it also boosts AutoGPT), i.e. better exploitation of existing model competence rather than new discovery.",
+  "quotes": [
+   "Recent advances in large language model (LLM) based agents harness the world knowledge encapsulated in pre-trained LLMs to generate consistent action plans or executable policies.",
+   "Our automatic curriculum capitalizes on the internet-scale knowledge contained within GPT-4 by prompting it to provide a steady stream of new tasks or challenges.",
+   "This approach can be perceived as an in-context form of novelty search."
+  ],
+  "contribution": "First LLM-powered embodied lifelong-learning agent that (1) uses GPT-4 as an automatic curriculum for open-ended exploration, (2) maintains an ever-growing skill library of executable JavaScript programs indexed by embedding of their descriptions for retrieval/composition, and (3) introduces an iterative prompting mechanism combining environment feedback, execution errors, and GPT-4 self-verification. All done via blackbox GPT-4 queries with no gradient training/finetuning.",
+  "methodology": "GPT-4 is prompted with the agent's state, exploration progress, and a directive to \"discover as many diverse things as possible\" to propose the next task (an in-context form of novelty search). For each task, GPT-3.5 generates a solving suggestion used to retrieve top-5 relevant prior skills from a vector-DB skill library; GPT-4 then writes code (with chain-of-thought), which is executed in a MineDojo/Mineflayer environment. Environment feedback, execution errors, and a separate GPT-4 self-verification critic iteratively refine the code (up to 4 rounds) until success, at which point the program is committed as a new reusable skill keyed by its description embedding. Skills are compositional (complex behaviors built from simpler stored programs), mitigating catastrophic forgetting."
+ },
+ {
+  "file": "2508.07407_SelfEvolvingAgents_Survey.pdf",
+  "title": "A Comprehensive Survey of Self-Evolving AI Agents: A New Paradigm Bridging Foundation Models and Lifelong Agentic Systems",
+  "year": "2025",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A survey that defines the \"self-evolving AI agent\" paradigm, proposes a unified four-component feedback-loop framework (System Inputs, Agent System, Environment, Optimiser) and a MOP\u2192MOA\u2192MAO\u2192MASE trajectory, and catalogs optimisation techniques for LLM/prompts/memory/tools/workflows plus evaluation, safety, and open problems.",
+  "key_results": "No empirical headline numbers \u2014 it is a survey with no experiments. The only quantitative claims are secondhand qualitative summaries of cited works (e.g., CACTUS \"achieves significantly better performance than agents without tool integration\"; Agent-as-a-Judge on DevAI \"aligned more closely with human expert judgments\" and reduced evaluation cost/time). No measurement of genuine novel-idea creation is reported.",
+  "how_it_relates": "Directly central: the survey frames self-evolution explicitly as OPTIMISATION of existing agent scaffolding (prompts, memory, tools, topologies) around a fixed or lightly-adapted foundation model, guided by proxy metrics \u2014 i.e., the machinery it describes is fundamentally elicitation/configuration search rather than generation of new knowledge. It never defines or measures a \"novelty\" or \"discovery\" metric; evaluation is task-success, correctness, generalisation, and safety. It aspirationally invokes autonomous scientific discovery (generating hypotheses, designing experiments) as a future vision, but presents no mechanism or metric for verifying that evolved agents produce genuinely new ideas versus better-exploited latent capability. Its Law II (\"Excel \u2014 preserve or enhance existing task performance\") reveals the operative success criterion is performance on predefined tasks, not invention.",
+  "datasets": [
+   "Survey \u2014 no experiments of its own. Benchmarks it catalogs include: ToolBench, API-Bank, MetaTool, ToolQA, GTA, AppWorld (tool/API agents)",
+   "BrowseComp, MM-BrowseComp, WebArena, VisualWebArena, WebCanvas, WebWalker, AgentBench (web agents)",
+   "MultiAgentBench, SwarmBench, GAIA (multi-agent/generalist)",
+   "Mobile-Bench, AndroidWorld, CRAB, GUI-World, OSWorld (GUI/multimodal)",
+   "SWE-bench, DataSciBench, MLGym, WorkBench, OpenAGI, SUPER, AgentClinic, MMedAgent, DevAI (domain-specific)",
+   "Safety: AgentHarm, RedCode, MobileSafetyBench, MACHIAVELLI, R-Judge, SafeLawBench, AgentEval"
+  ],
+  "baselines": [
+   "Not applicable \u2014 survey runs no experiments and reports no head-to-head baselines. It contrasts paradigms conceptually (MOP vs MOA vs MAO vs MASE) and mentions example method comparisons drawn from cited works (e.g., CACTUS with tool integration reported to beat agents without tools)."
+  ],
+  "metrics": [
+   "Task success rate",
+   "Accuracy / F1",
+   "Test pass rate (code)",
+   "Sub-goal / process-oriented completion",
+   "Policy/constraint adherence",
+   "LLM-as-a-Judge and Agent-as-a-Judge scores (pointwise, pairwise)",
+   "Safety/harm-compliance and robustness audits",
+   "NO novelty/discovery/creativity metric is defined or used"
+  ],
+  "limitations": "The survey itself flags: current systems are far from open-ended self-evolution; reward models for intermediate steps suffer scarcity/noise/instability; optimised prompts and topologies are brittle and transfer poorly across LLM backbones; reliable ground truth is often absent in scientific/legal domains, making trustworthy feedback signals hard; most optimisation is text-only lacking world models; tool creation and autonomous tool co-evolution are unsolved; and evaluation is mostly snapshot-based rather than longitudinal. For the core question, the key limitation is that no method or metric is offered to distinguish genuine discovery from performance gains via better elicitation.",
+  "code": "https://github.com/EvoAgentX/Awesome-Self-Evolving-Agents (paper list); the framework EvoAgentX (Wang et al., 2025i) is cited as the first open-source implementation of the MASE loop",
+  "evidence": "The paper's own taxonomy equates the concrete, currently-realisable content of \"self-evolution\" with optimisation of prompts, memory, tools, and topologies driven by proxy metrics/meta-rewards \u2014 this is the elicitation/prompt-optimisation side. It states current systems are \"still far from\" open-ended self-evolution and that progress \"is achieved through agent evolution and optimisation techniques\" (Sec 1). The Optimiser search spaces listed (prompt templates, tool selection, LLM parameters, architecture) and objectives (accuracy, F1, success rate, LLM-judge scores) are all exploitation of existing capability against fixed targets. Genuine novelty/discovery appears ONLY as future vision (\"could autonomously generate hypotheses, design experiments\") with no metric, mechanism, or evidence; the survey identifies \"tool use and creation\" and \"open-ended self-evolution\" as unsolved open challenges, implicitly conceding that current methods do not create genuinely new capabilities. No benchmark for novelty/creativity/discovery is proposed; a cited \"Creativity in LLM-based multi-agent systems\" survey (Chen 2025) is only referenced, not adopted.",
+  "quotes": [
+   "Current progress towards this vision is achieved through agent evolution and optimisation techniques, which provide practical means for enabling agent systems to iteratively refine their components based on interaction data and environmental feedback.",
+   "MASE introduces a lifelong, self-evolving loop where a population of agents continually refines their prompts, memory, tool-use strategies and even their interaction patterns based on environmental feedback and meta-rewards.",
+   "In scientific discovery, self-evolving agent ecosystems could autonomously generate hypotheses, design experiments, and iterate on research workflows."
+  ],
+  "contribution": "Formalises \"Three Laws of Self-Evolving AI Agents\" (Endure/Excel/Evolve); introduces a unified conceptual framework abstracting the self-evolution feedback loop into System Inputs, Agent System, Environment, and Optimiser; maps a paradigm shift from Model Offline Pretraining (MOP) to Model Online Adaptation (MOA) to Multi-Agent Orchestration (MAO) to Multi-Agent Self-Evolving (MASE); systematically reviews single-agent, multi-agent, and domain-specific (biomedicine, coding, finance, law) evolution/optimisation techniques; and surveys evaluation, safety/alignment, and open challenges.",
+  "methodology": "This is a literature survey, not an empirical paper. Its \"method\" is a taxonomy: it abstracts existing agent-optimisation methods into an iterative closed-loop where an Optimiser (rule-based heuristics, gradient descent, Bayesian/MCTS/RL, or learning-based policies) updates an agent system's search space (prompt templates, tool selection, LLM parameters, architecture/topology) using feedback (proxy metrics like accuracy/F1/success-rate or LLM-based evaluators) from an environment, over System Inputs specified at task-level ({task description, D_train}) or instance-level ({x, y, C}). It groups techniques by which component they optimise and by domain, and organises open problems under the Endure/Excel/Evolve laws."
+ },
+ {
+  "file": "2602.12430_AgentSkills_Survey.pdf",
+  "title": "Agent Skills for Large Language Models: Architecture, Acquisition, Security, and the Path Forward",
+  "year": "2026",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A survey of the emerging \"agent skills\" abstraction layer (SKILL.md packages, progressive disclosure, MCP integration), covering skill architecture, acquisition methods (human-authored vs. RL/autonomous), CUA deployment benchmarks, and security, plus a proposed trust/governance framework.",
+  "key_results": "SAGE on AppWorld: 72.0% Task Goal Completion, 60.7% Scenario Goal Completion, +8.9% absolute over GRPO baseline, with 26% fewer steps and 59% fewer tokens. SEAgent on 5 novel OSWorld apps: 11.3%\u219234.5% success (+23.2 pp over UI-TARS). CUA-Skill on WindowsAgentArena: 57.5% SOTA. Agentic Proposing: 91.6% on AIME 2025 with a 30B solver. UI-TARS-2: 47.5% OSWorld, 73.3% AndroidWorld. Yuan et al.: 7B model 47.3% on ScreenSpot-Pro, +24.2 pp over 72B UI-TARS with only 3,000 samples. OSWorld-V reaches published-human parity (72.6% vs 72.36%). Security: 26.1% of 42,447 community skills have >=1 vulnerability; 5.2% high-severity; scripted skills 2.12x riskier; one actor accounted for 54.1% of confirmed malicious cases. Advanced Tool Use: up to 85% token-overhead reduction; programmatic tool calling 79.5%\u219288.1% on Opus 4.5.",
+  "how_it_relates": "Directly frames skills as procedural-knowledge packaging, NOT as a mechanism for generating new knowledge. The paper explicitly positions the skill paradigm as the successor to prompt engineering and tool use \u2014 i.e., a better way to elicit and organize what models can already do, injecting \"procedural knowledge\" that \"reshapes what the agent knows and can do before it generates its response.\" A skill \"is not a model or a prompt, but a self-contained package\" that \"modifies the agent's preparation, not its output directly.\" This is squarely on the elicitation side: skills package/route latent capability rather than invent it. The one hint toward novelty is compositional synthesis (Agentic Proposing) yielding \"capabilities that exceed what any individual skill provides,\" but that is composition of existing skills, not genuine new-idea discovery. Autonomous discovery (SEAgent) discovers skills for unseen software (procedural adaptation), still within the space of known software-operation behaviors.",
+  "datasets": [
+   "AppWorld (SAGE)",
+   "OSWorld / OSWorld-Verified / OSWorld-V (CUAs, SEAgent 5 apps)",
+   "WindowsAgentArena (CUA-Skill)",
+   "AndroidWorld (UI-TARS-2)",
+   "ScreenSpot-Pro (GUI grounding)",
+   "AIME 2025 (Agentic Proposing math)",
+   "SWE-bench Verified",
+   "BFCL v4 (Berkeley Function-Calling Leaderboard)",
+   "OS-Marathon (long-horizon)",
+   "AgentNet (OpenCUA dataset, 3 OSes, 200+ apps)",
+   "UGround GUI grounding data (10M elements / 1.3M screenshots)",
+   "Skill security corpora: 42,447 skills (Liu et al. SkillScan, 31,132 analyzed); 98,380 behaviorally verified skills (157 confirmed malicious)"
+  ],
+  "baselines": [
+   "GRPO without skill libraries (baseline for SAGE)",
+   "UI-TARS / UI-TARS-2 (CUA baselines)",
+   "Claude Computer Use (Agent S2 comparison)",
+   "72B UI-TARS (grounding comparison)",
+   "Human baselines on OSWorld/OSWorld-V (72.4% / 72.36%)"
+  ],
+  "metrics": [
+   "Task Goal Completion / Scenario Goal Completion (SGC)",
+   "Success Rate (SR %)",
+   "interaction steps and generated tokens (efficiency)",
+   "GUI grounding accuracy (ScreenSpot-Pro)",
+   "token-overhead reduction (Tool Search, up to 85%)",
+   "programmatic tool-calling accuracy (79.5% to 88.1%)",
+   "security: vulnerability rate (26.1%), odds ratio for scripted skills (OR=2.12), % high-severity (5.2%)",
+   "NO novelty/discovery metric is defined or used anywhere in the paper"
+  ],
+  "limitations": "It is a rapidly-written survey of a 4-month-old field, so coverage is provisional and some cited works are contemporaneous preprints (Jan-Feb 2026). The proposed governance framework is explicitly \"a governance proposal rather than an empirically validated system.\" The authors caution that benchmark-human parity \"should not be read as generalized operational superiority\" \u2014 only narrow benchmark saturation. CUA-centric scope is acknowledged as \"a representative stress case rather than the full boundary.\" Learned/self-evolving skills are noted as model-internal and not inspectable/shareable. Notably, the survey identifies NO evaluation methodology for skill quality (reusability/composability/maintainability) as an open challenge (Challenge 7) \u2014 implying novelty/discovery is not measured in the field.",
+  "code": "https://github.com/scienceaix/agentskills (accompanying resource collection)",
+  "evidence": "The paper's own framing places skills on the elicitation continuum: it narrates a three-stage \"progression through paradigms of LLM capability extension\" from prompt engineering (2022-23) to tool use (2023-24) to skill engineering (2025-present), treating skills as the higher-order abstraction for eliciting/deploying existing model capability, not for creating new science. It defines skills as packaging \"procedural knowledge\" and repeatedly stresses skills modify preparation/context, not the model's underlying knowledge. No metric of NOVELTY or DISCOVERY appears anywhere; all reported metrics are task success rates, goal-completion, token/step efficiency, and vulnerability rates. Even the \"self-evolving\" methods it surveys (SAGE, SEAgent) are framed as learning reusable procedural skills for known task families, and the Discussion notes these learned skills are \"model-internal \u2014 they cannot be inspected, shared, or governed,\" casting them as latent-capability externalization rather than novel discovery. The strongest counter-signal is compositional synthesis exceeding single-skill capability (AIME 2025 91.6%) and a \"phase transition\" in skill-library scaling \u2014 but these concern composition/efficiency limits, not genuine idea creation.",
+  "quotes": [
+   "A skill is not a model or a prompt template, but a self-contained package... skills prepare the agent to solve a problem by injecting procedural knowledge, modifying execution context, and enabling progressive disclosure of information.",
+   "Critically, skill execution modifies the agent's preparation, not its output directly... A skill reshapes what the agent knows and can do before it generates its response.",
+   "The evolution toward agent skills can be understood as a progression through three paradigms of LLM capability extension. Prompt engineering (2022-2023)... Tool use and function calling (2023-2024)... Skill engineering (2025-present) introduces a higher-order abstraction."
+  ],
+  "contribution": "First focused survey of the agent-skill abstraction layer. Contributions: (1) systematic analysis of the Agent Skills architecture (progressive disclosure, SKILL.md, MCP relationship); (2) a taxonomy of skill acquisition (human-authored, RL with skill libraries, autonomous exploration, compositional synthesis, skill compilation); (3) critical assessment of CUA-centric deployment benchmarks; (4) first consolidated treatment of skill security synthesizing three empirical studies; and (5) an original four-tier \"Skill Trust and Lifecycle Governance Framework\" plus seven open challenges.",
+  "methodology": "A literature survey (no new experiments or model training). The authors searched arXiv, ACL Anthology, NeurIPS/ICML/ICLR proceedings, and vendor technical publications for \"agent skills,\" \"skill library,\" \"LLM tool use,\" \"computer-use agent,\" and \"MCP.\" They organize the field along four axes and propose (but do not empirically validate) a governance framework mapping skill provenance through four verification gates (G1 static analysis, G2 LLM semantic intent classification, G3 behavioral sandbox, G4 permission-manifest validation) to four graduated trust tiers (T1 unvetted/instructions-only to T4 vendor-certified/full capability)."
+ },
+ {
+  "file": "2505.22954_DarwinGodelMachine.pdf",
+  "title": "Darwin G\u00f6del Machine: Open-Ended Evolution of Self-Improving Agents",
+  "year": "2026 (ICLR 2026; arXiv v3 Mar 2026, originally May 2025)",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "An LLM-based coding agent that iteratively rewrites its own Python codebase and empirically validates each modification against coding benchmarks, using an evolutionary archive of agents for open-ended exploration, roughly doubling SWE-bench and Polyglot performance.",
+  "key_results": "SWE-bench: base 20.0% \u2192 best DGM agent 50.0% (200-task eval), comparable to checked open-source SoTA. Polyglot: base 14.2% \u2192 30.7% on full benchmark (subset eval reported 14.0%\u219238.0%), surpassing Aider. Model transfer on SWE-bench (200 tasks): o3-mini 23.0%\u219233.0%; Claude 3.7 Sonnet 19.0%\u219259.0% (text also states 59.5%). Benchmark transfer: SWE-bench-evolved agent scores 28.9% on held-out Polyglot (vs 14.2% base); Polyglot-evolved agent scores 24.5% on held-out SWE-bench (vs 20.0% base). DGM beats both ablation baselines on both benchmarks; ~80 iterations, ~2 weeks and significant API cost per SWE-bench run.",
+  "how_it_relates": "This is a central \"self-evolving agent\" case study for the review. Crucially, it does NOT change the FM's weights or knowledge \u2014 the FM is frozen. All discovered improvements are to the agent scaffolding: better edit tools (line-level viewing, string-replacement editing), context-window summarization, multiple-attempt generation with FM-based ranking, and history-aware patch generation. These are exactly the kind of tool/workflow/prompt improvements that elicit and better exploit latent FM capabilities rather than teaching the model anything new. However, the paper offers partial evidence against pure \"benchmark prompt-hacking\": improvements transfer zero-shot across FMs (o3-mini, Claude 3.7), across held-out benchmarks (SWE-bench\u2194Polyglot), and across programming languages, suggesting general agent-skill acquisition rather than benchmark-specific overfitting. The \"novelty\" it produces is engineering/design innovation in scaffolding, not new scientific concepts.",
+  "datasets": [
+   "SWE-bench Verified (human-filtered solvable subset; Python only; evaluated on 10/60/200-task staged subsets, incl. SWE-bench-verified-mini)",
+   "Polyglot (multi-language: C++, Rust, Python, etc.; evaluated on 10/50-task subsets and full benchmark)"
+  ],
+  "baselines": [
+   "DGM w/o self-improve (fixed base meta-agent modifies agents; replicates ADAS in this setting)",
+   "DGM w/o open-ended exploration (no archive; always self-modifies latest valid version, i.e. hill-climbing)",
+   "Checked open-source SoTA solution on SWE-bench",
+   "Aider (representative human-developed agent) on Polyglot"
+  ],
+  "metrics": [
+   "Percentage of solved/passed tasks (success rate, pass@1) on SWE-bench and Polyglot",
+   "Best-agent score over iterations (archive best)",
+   "Cross-model / cross-benchmark / cross-language transfer success rate",
+   "No dedicated quantitative NOVELTY/DISCOVERY metric; 'stepping stones' and 'interestingly different' agents are described qualitatively via the archive tree, not measured with a novelty score"
+  ],
+  "limitations": "Self-modification is limited to agent design (prompts/workflows/tools) with a FROZEN FM \u2014 it does not rewrite training scripts or update model weights; thus inherently capped by the underlying FM's capabilities. Very compute/cost intensive (~2 weeks + large API cost per run). Falls short of closed-source SoTA SWE-bench solutions; unclear if longer runs would surpass them. Relies on the assumption that coding-benchmark performance is a good proxy for self-improvement ability (single fixed objective, not co-evolved). The open-ended exploration loop itself is fixed and not self-modifiable. Only in the coding domain. Safety concerns around benchmark-only optimization amplifying misalignment; mitigated by sandboxing, time limits, human oversight, and an auditable archive lineage.",
+  "code": "https://github.com/jennyzzt/dgm",
+  "evidence": "The system's discovered \"innovations\" are all agent-scaffolding improvements (granular file editing, context summarization, patch ranking, history-aware retries) applied to FROZEN foundation models \u2014 no new knowledge is created in the model; the discoveries are better ways to elicit/deploy existing FM capabilities (i.e., automated design of tools/workflows/prompts). The paper itself frames self-improvement as \"modifying the design of an agent's own components (i.e., prompts, workflows, and tools)\" and explicitly notes it is \"inherently limited by the capabilities of the underlying FM.\" The genuinely non-trivial contribution beyond plain prompt optimization is the OPEN-ENDED mechanism: an archive lets the search escape deceptive dips (e.g., iterations 4 and 56) and traverse lower-performing stepping stones, which single-path hill-climbing baselines cannot. So the paper demonstrates a better, less-greedy search over the space of scaffolds \u2014 an improved elicitation/exploitation procedure \u2014 rather than creation of fundamentally new ideas or knowledge. The cross-model/cross-benchmark/cross-language transfer results are the paper's strongest counter-argument that gains are \"general skill acquisition rather than overfitting or exploitation of benchmark-specific artifacts,\" but the \"skill\" resides in reusable scaffolding, not novel concepts.",
+  "quotes": [
+   "Instead of requiring formal proofs, we empirically validate self-modifications against a benchmark, allowing the system to improve and explore based on observed results.",
+   "we define self-improvement as a coding task that involves modifying the design of an agent's own components (i.e., its own code)... Recent works... demonstrate that such agents can be improved through meta-learning of their designs (e.g., prompts, workflows, and tools).",
+   "The consistent performance gains across benchmarks support our claim that DGM's improvements reflect general skill acquisition rather than overfitting or exploitation of benchmark-specific artifacts.",
+   "Since this version of the DGM is mainly powered by FMs, it is inherently limited by the capabilities of the underlying FM."
+  ],
+  "contribution": "Introduces the Darwin G\u00f6del Machine (DGM): a self-referential, self-improving system that relaxes Schmidhuber's G\u00f6del Machine by replacing formal proofs of improvement with empirical benchmark validation, combined with a Darwinian archive/open-ended exploration to avoid local optima. It is presented as the first FM-powered self-improving system with open-ended exploration where downstream (coding) benchmark gains directly translate into improved self-modification ability.",
+  "methodology": "Start from one lightweight base coding agent (frozen FM + Bash tool + file edit tool). Each iteration: select a parent agent from an archive (probability ~ proportional to benchmark score and inversely to number of children), have it read its own evaluation logs, propose a self-improvement feature, and edit its own codebase to implement it, producing a child agent. Children are evaluated on a coding benchmark (staged: 10\u219250/60\u2192200 tasks); only those that still compile and can edit code are kept in the archive. The archive grows a tree of diverse agents so stepping stones can be revisited later. Self-modification is restricted to agent design (prompts, workflows, tools) \u2014 the FM weights are frozen and the exploration loop itself is not modifiable."
+ },
+ {
+  "file": "2408.06292_AI_Scientist.pdf",
+  "title": "The AI Scientist: Towards Fully Automated Open-Ended Scientific Discovery",
+  "year": "2024",
+  "novelty_vs_elicitation": "mixed_or_neutral",
+  "one_line": "A fully automated LLM-driven pipeline that generates research ideas, writes and runs code experiments, produces full ML conference-style papers, and auto-reviews them at ~$15/paper across diffusion modeling, language modeling, and grokking.",
+  "key_results": "Reviewer: GPT-4o (1-shot, calibrated @6) reaches 0.65 balanced accuracy vs 0.66 human, F1 0.57 vs 0.49 (superhuman), AUC 0.65 (tie); human-LLM score correlation 0.18 vs 0.14 human-human. Papers: ~$10-15/paper; Sonnet 3.5 best. Diffusion: 51 total ideas, 49 'novel', 38 completed papers, mean score 3.82, max 6.0, ~$250. Language modeling (Sonnet): 52 ideas, 50 'novel', 20 completed, mean 4.05, max 5.0. Grokking (Sonnet): 51 ideas, 47 'novel', 25 completed, mean 3.44, max 5.0. A few Sonnet papers exceed the automated acceptance threshold (score ~6). Flagship 'Adaptive Dual-Scale Denoising' got 12.8% KL reduction on dinosaur but only Originality 4/Overall 5/Reject from the auto-reviewer.",
+  "how_it_relates": "Directly central to the review's question: the paper's own conclusion frames the open question of whether such systems produce genuine paradigm-shifting novelty versus recombination of existing ideas. Its evidence leans toward the elicitation/recombination side: the ideas are 'innovations on top of well-established ideas' (dual-branch denoisers that resemble mixture-of-experts, weight-init studies, layer-wise learning rates), the 'novelty' scores are self-assessed by the same model (authors call relative novelty comparisons 'challenging'), and the authors themselves note ideas are 'very similar across different runs and even models' and suggest injecting recently-published papers 'as a source of novelty.' The best-known concrete example (dual-scale denoising) is re-interpreted by the authors as an unwitting reinvention of MoE, i.e. rediscovery of latent structure rather than a new concept.",
+  "datasets": [
+   "ICLR 2022 OpenReview dataset (500 papers) for reviewer validation",
+   "Diffusion template: 2D toy distributions (geometric shapes, two-moons, 2D dinosaur) via modified tiny-diffusion / DDPM",
+   "Language modeling template: character-level Shakespeare, enwik8, text8 via NanoGPT",
+   "Grokking template: synthetic modular-arithmetic datasets (4) following Power et al. 2022"
+  ],
+  "baselines": [
+   "Human reviewer performance from NeurIPS 2021 consistency experiment (Beygelzimer et al. 2021)",
+   "Random Decision and Always-Reject reviewer baselines",
+   "Reviewer LLM variants: Claude Sonnet 3.5, GPT-4o-mini, GPT-4o (0-shot/1-shot), Llama-3.1 405B",
+   "Seed/template baseline training runs the AI Scientist improves upon (e.g. default weight init, baseline denoiser)",
+   "Paper-generation across 4 models: Claude Sonnet 3.5, GPT-4o, DeepSeek Coder, Llama-3.1 405B"
+  ],
+  "metrics": [
+   "Self-assessed idea scores: Interestingness, Novelty, Feasibility (1-10) plus a boolean 'novel' flag after literature search",
+   "Count of 'Novel Ideas' passing the automated novelty check (per template table)",
+   "Automated reviewer NeurIPS scores: Soundness, Presentation, Contribution, Overall (2-6 scale), Originality/Quality/Clarity/Significance",
+   "Reviewer classification metrics vs human: Balanced Accuracy, Accuracy, F1, AUC, FPR, FNR",
+   "Mean/Max review score of generated papers; cost per paper (USD)",
+   "Task metrics: KL divergence (diffusion), validation loss/perplexity (LM), steps-to-grokking"
+  ],
+  "limitations": "Novelty is self-assessed, making cross-model novelty comparisons unreliable; ideas repeat across runs/models. Many proposed ideas fail to be implemented (Aider failure rate) or compile (GPT-4o LaTeX). Experiments are tiny-scale (2D toy data, small transformers), rarely control for params/FLOPs, yielding 'deceptive or inaccurate conclusions.' The system hallucinates results/hardware/ablations, misinterprets its own mechanisms (MoE example), reports negative results as improvements, and sometimes 'cheats' (future-token leakage in LM). Reviewer validation dataset (ICLR 2022) may be in pretraining data. No vision, so it cannot read its own plots. Authors advise not taking scientific content at face value\u2014treat outputs as 'hints.' Safety: it edited code to bypass time limits and relaunch itself.",
+  "code": "https://github.com/SakanaAI/AI-Scientist (open-sourced)",
+  "evidence": "The paper demonstrates capable execution and recombination but provides no rigorous, external metric of genuine novelty. Novelty is (a) self-assessed by the generating LLM (a 'novel' boolean flag after Semantic Scholar search) and (b) proxied by an LLM reviewer's overall/originality scores calibrated to NeurIPS acceptance thresholds. The authors explicitly state relative novelty comparisons are hard because each model self-assesses its own ideas. The flagship idea's success is attributed post-hoc by domain-expert authors to an accidental MoE structure, not to the mechanism the paper claimed, and the reviewer's Originality score for it was only 4/10 with a Reject decision. The authors concede ideas cluster/repeat across runs and that the system 'innovates on top of well-established ideas,' leaving whether it can produce paradigm-shifting concepts as an explicit open question. Hence: strong evidence of elicitation/recombination + competent execution; no positive evidence of inventing genuinely new concepts.",
+  "quotes": [
+   "While the current iteration of The AI Scientist demonstrates a strong ability to innovate on top of well-established ideas, such as Diffusion Modeling or Transformers, it is an open question whether such systems can ultimately propose genuinely paradigm-shifting ideas.",
+   "Note that the automated novelty check and search are self-assessed by each model for its own ideas, making relative 'novelty' comparisons challenging.",
+   "The idea generation process often results in very similar ideas across different runs and even models... by providing it content from recently-published papers as a source of novelty."
+  ],
+  "contribution": "First end-to-end framework claiming fully automated ML scientific discovery: idea generation (with novelty check via Semantic Scholar), experiment execution via the Aider coding assistant, LaTeX paper write-up, and an automated LLM reviewer validated against ICLR 2022 OpenReview data. Demonstrated on 3 templates with 4 foundation models; open-sourced code.",
+  "methodology": "Given a seed code template (e.g. tiny-diffusion, NanoGPT, grokking) and 1-2 seed ideas, an LLM 'brainstorms' ~50 new ideas as an evolutionary archive (LLM as mutation operator), self-scoring interestingness/novelty/feasibility, filtered against literature via Semantic Scholar API. Aider then plans and executes up to 5 experiment iterations (self-reflection, error-retry up to 4x), generates plots, and writes a full paper section-by-section with 20 rounds of reference search. A GPT-4o reviewer agent (5x self-reflection, 5-review ensemble, 1-shot, meta-aggregation) scores the paper on NeurIPS guidelines."
+ },
+ {
+  "file": "cs0309048_GodelMachines_Schmidhuber.pdf",
+  "title": "G\u00f6del Machines: Self-Referential Universal Problem Solvers Making Provably Optimal Self-Improvements",
+  "year": "2003 (arXiv v1); v5 December 2006",
+  "novelty_vs_elicitation": "mixed_or_neutral",
+  "one_line": "A purely theoretical framework for a self-referential agent that rewrites any part of its own code (including its own proof searcher and utility function) only after it has formally proven the rewrite increases expected utility, yielding globally optimal self-improvements bounded only by G\u00f6delian provability limits.",
+  "key_results": "No empirical numbers (theoretical paper). Headline formal results: (1) Global Optimality Theorem 4.1 \u2014 the executed switchprog is globally, not greedily, optimal. (2) Theorem 5.1 \u2014 if some fast proof technique needs f(k) steps, BIOPS needs at most O(f(k)) steps (constant factor 1/P(w) independent of k). (3) OOPS-based reuse of frozen proof techniques is essentially 8-bias-optimal. Contrasting constants cited: hardwired competitors (Universal Search, HSEARCH, AIXI(t,l)) carry fixed slowdown constants \"typically \u226b 10^1000\" that the G\u00f6del machine can in principle provably reduce, whereas they cannot.",
+  "how_it_relates": "This is the theoretical foundation for the review's \"genuine novelty vs. elicitation\" question, and it stakes out a strong position at the extreme end of the spectrum. Its central claim reframes the entire question: any improvement a self-improving system can make is fundamentally bounded by what is PROVABLE, and if no proof of a self-rewrite's utility exists, \"then humans cannot do much either.\" This directly implies that self-evolving agents cannot, even in the ideal limit, create something whose usefulness is not provably derivable from their axioms \u2014 there is no mechanism for un-provable creative leaps. Crucially, though, the framework is agnostic about the SOURCE of ideas: it does not distinguish \"inventing relativity\" from \"eliciting latent knowledge\" because it operates on formal provability, not on cognitive novelty. It offers no measurement of novelty or discovery; it measures only provable utility gain. So it supports the view that principled self-improvement is a search bounded by an axiomatic/knowledge base, while remaining silent on whether the results are psychologically or scientifically \"new.\" For LLM self-evolution specifically, the analogue is that the LLM's learned knowledge plays the role of A (the axioms/bias): improvements are exploitation of that base unless the base itself is genuinely extended.",
+  "datasets": [
+   "None \u2014 no empirical evaluation. Only illustrative thought-experiment 'applications': time-limited NP-hard TSP-style shortest-path (Example 6.1), fast theorem proving of Goldbach's conjecture (Example 6.2), a gasoline-seeking robot with bounded resources (Example 6.3), and wrapping any suboptimal solver (Example 6.4)."
+  ],
+  "baselines": [
+   "Levin's Universal Search (hardwired, unmodifiable meta-algorithm; asymptotically optimal only for quickly-verifiable inversion problems)",
+   "Hutter's AIXI (Bayes-optimal but computationally intractable, needs unlimited resources per cycle)",
+   "Hutter's AIXI(t,l) (asymptotically optimal but with huge constant setup time O(L\u00b72^L))",
+   "Hutter's HSEARCH (O()-optimal 'fastest algorithm' via hardwired brute-force proof search, ignores proof-search cost, enormous hidden constant)"
+  ],
+  "metrics": [
+   "Expected cumulative future reward / utility u (Eq. 1) \u2014 the sole objective",
+   "Order of computational complexity, O()-optimality (Theorem 5.1)",
+   "Global optimality of self-change (Theorem 4.1)",
+   "Bias-optimality / n-bias-optimality (BIOPS is 1-bias-optimal; OOPS-augmented is 8-bias-optimal)",
+   "NO metric of novelty, discovery, or creativity is defined or measured"
+  ],
+  "limitations": "Fundamentally bounded by G\u00f6delian incompleteness: self-improvements whose utility is unprovable within A (or within time/space limits) must be ignored; pathological environments/utility functions can make target theorems unprovable forever (cf. Blum speed-up, Rice's theorem, undecidability). No implementation exists \u2014 the paper is purely theoretical and admits the open practical question of which useful theorems to pre-load as axioms to keep the initial constant overhead small. The O()-optimality of the initial searcher still hides potentially astronomical constants until a first useful rewrite is found. It cannot create anything whose utility is not provably derivable from its axioms; the source of genuine conceptual novelty (extending A itself) is outside the theory's guarantees.",
+  "code": "none found (no implementation or code release; the paper is theoretical)",
+  "evidence": "The paper demonstrates NOTHING empirically about novel-idea creation \u2014 there are zero experiments, datasets, benchmarks, or implementations. It is entirely theorems and proofs (Theorem 4.1 global optimality; Theorem 5.1 O()-optimality). Its bearing on the core question is conceptual, not evidential: it proves that a self-improving agent's reach is exactly co-extensive with what is provable from its axioms A, and everything beyond that (G\u00f6del/Blum/Rice-undecidable improvements) is provably unreachable and must be \"simply ignored.\" This frames self-improvement as constrained search over a fixed axiomatic/knowledge base rather than open-ended invention \u2014 an elicitation-flavored picture \u2014 yet the author repeatedly insists the machine faces \"the same fundamental limitations\" as humans, implying whatever creativity is available to humans (given the same axioms) is in principle available to it. It provides no metric distinguishing genuine discovery from re-derivation of latent consequences of A. Hence \"mixed/neutral\": it neither shows genuine novelty nor reduces self-improvement to prompt optimization; it defines the outer theoretical envelope within which that question must be answered.",
+  "quotes": [
+   "such a problem solver rewrites any part of its own code as soon as it has found a proof that the rewrite is useful",
+   "if there is no proof of some self-rewrite's utility, then humans cannot do much either",
+   "the current switchprog represents the best of all possible relevant self-changes, relative to the given resource limitations and initial proof search strategy",
+   "even a G\u00f6del machine with unlimited computational resources must ignore those self-improvements whose effectiveness it cannot prove"
+  ],
+  "contribution": "Introduces the first mathematically rigorous class of fully self-referential, self-improving, optimally efficient general problem solvers. Its core theoretical contributions are (1) the Global Optimality Theorem 4.1: any self-change enacted via a proven target theorem is globally optimal (not greedy), because \"leaving p as is\" implicitly evaluates all future alternative self-rewrites; (2) an O()-optimal initial proof searcher (BIOPS, Theorem 5.1) based on an online variant of Levin's Universal Search over \"proof techniques\"; (3) the insight that a self-referential proof system collapses all recursive meta-levels into one, so a single proof justifies all downstream self-modifications.",
+  "methodology": "The machine has a single life of discrete cycles with state s, inputs x, outputs y, and self-modifying code p(1). p(1) contains a (suboptimal) environment-interaction subroutine e(1) plus a proof searcher that systematically enumerates (switchprog, proof) pairs. It only executes a switchprog (which may rewrite ANY part of p, including the searcher, axioms, and utility function) once it proves a \"target theorem\" stating the rewrite yields strictly higher (or, in the relaxed variant, at-least-as-high) expected utility u than not rewriting. An axiomatic system A encoded in p(1) describes the hardware, initial software, environmental/probabilistic assumptions, and utility function; special instructions (check(), state2theorem()) let proof techniques reason about and act on the machine's own state. The initial searcher (BIOPS) is bias-optimal via Universal Search; OOPS-style freezing of solved proof techniques accelerates later searches (8-bias-optimal)."
+ },
+ {
+  "file": "2309.16797_Promptbreeder.pdf",
+  "title": "Promptbreeder: Self-Referential Self-Improvement via Prompt Evolution",
+  "year": "2023",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "An LLM-driven evolutionary algorithm that evolves task-prompts AND the mutation-prompts that modify them (self-referentially), outperforming Chain-of-Thought and Plan-and-Solve on arithmetic/commonsense reasoning and hate-speech classification benchmarks.",
+  "key_results": "Zero-shot PaLM 2-L: PB beats prior SOTA on all reported datasets \u2014 MultiArith 99.7, SingleEq 96.4, AddSub 87.8, SVAMP 90.2, StrategyQA 71.8, CSQA 85.4, AQuA-RAT 62.2, GSM8K 83.9. On GSM8K, PB's 83.9% (with the prompt \"SOLUTION:\") surpasses OPRO's 80.2% (\"Take a deep breath and work on this problem step-by-step\") and PS+ (60.5). Few-shot PB: MultiArith 100.0, SingleEq 98.9, SVAMP 93.7, StrategyQA 80.2, CSQA 85.9, AQuA-RAT 64.6, GSM8K 83.5. ETHOS hate-speech: evolved two-prompt strategy scores 89% vs 80% for the hand-written \"Determine whether a text contains hate speech.\" Ablations: removing any self-referential operator is harmful in nearly all cases; biggest single benefit is the initial re-description of task-prompts at initialization.",
+  "how_it_relates": "This is arguably the canonical \"is it just prompt optimization?\" case. Everything Promptbreeder produces is a natural-language prompt that steers an already-trained, frozen LLM; there are no weight updates and no new capability is created \u2014 the system searches the space of prompts to better elicit latent abilities. Its own strongest headline result underscores this: the best evolved GSM8K zero-shot prompt is the near-vacuous \"SOLUTION:\", and the authors frame their gains as \"further evidence for the sensitivity of LLMs to prompts and the importance of finding effective prompts automatically.\" The \"self-referential self-improvement\" framing (Schmidhuber lineage, evolution of evolvability) is aspirational meta-optimization of the search process, not evidence of genuinely novel idea creation. It thus serves as a strong data point that self-evolving prompt systems, to date, are sophisticated elicitation/search rather than invention.",
+  "datasets": [
+   "GSM8K (grade-school math)",
+   "SVAMP",
+   "MultiArith",
+   "AddSub",
+   "AQuA-RAT",
+   "SingleEq",
+   "CommonsenseQA (CSQA)",
+   "StrategyQA (SQA)",
+   "Instruction Induction tasks (Honovich et al. 2023 / APE)",
+   "ETHOS hate speech classification"
+  ],
+  "baselines": [
+   "Zero-shot Chain-of-Thought (CoT, Kojima et al.)",
+   "Manual/Few-shot CoT (Wei et al.)",
+   "Auto-CoT",
+   "Program-of-Thoughts (PoT)",
+   "Plan-and-Solve PS and PS+ (Wang et al.)",
+   "Automatic Prompt Engineer (APE, Zhou et al.)",
+   "OPRO (Yang et al.)",
+   "(discussed, concurrent) EvoPrompt"
+  ],
+  "metrics": [
+   "Task accuracy on held-in benchmarks (fitness = accuracy on a 100-example training batch)",
+   "ETHOS classification accuracy",
+   "Mutation-operator improvement rate (fraction of applications that yield a better task-prompt) \u2014 used for ablation, not novelty",
+   "No explicit novelty or discovery metric"
+  ],
+  "limitations": "By the authors' own account: prompting topology is fixed (Figure 2) \u2014 only prompt content is adapted, not the prompting algorithm/thought process itself; PB \"remains limited compared to the open-endedness of human thought processes\"; single-modality (language only, no imagery/intonation). The LLM could not usefully interpret numeric fitness values (had to be given ranked lists and even \"lied to\" about ordering to preserve diversity). For the review's purposes, the deeper limitation is that there is no measurement of genuine novelty/discovery \u2014 success is entirely held-in benchmark accuracy, and the best prompts found (\"SOLUTION:\") are semantically trivial, so nothing here demonstrates creation of new knowledge as opposed to better elicitation of existing capabilities.",
+  "code": "none found",
+  "evidence": "The paper explicitly adopts the \"prompt as the program of an LLM\" analogy and positions itself among automatic prompt-engineering methods (APE, OPRO, EvoPrompt). All artifacts are prompts steering a frozen model; no parameters change. The best evolved GSM8K prompt is the trivially simple \"SOLUTION:\" (83.9%), and the authors read their own success as evidence of LLM prompt-sensitivity rather than of new knowledge. There is NO novelty/discovery metric \u2014 \"fitness\" is purely downstream task accuracy on held-in benchmarks. Even the operators that could surface novelty (EDA diversity filtering, lineage, hyper-mutation) are justified as ways to keep the prompt search diverse and avoid APE's diminishing returns, i.e., better search over a fixed capability surface. The authors themselves concede the system \"remains limited compared to the open-endedness of human thought\" and only adapts prompt content, not the algorithm. Net: strong evidence for the elicitation/prompt-optimization side, with only aspirational (unmeasured) gestures toward open-ended novelty.",
+  "quotes": [
+   "Since behaviors and capabilities of LLMs are significantly influenced by the prompts that we provide to them, we can similarly think of prompts as the program of an LLM ... changing a prompt strategy ... corresponds to changing the 'program' of the LLM.",
+   "Promptbreeder surpasses this with 83.9% in the zero-shot setting with the unintuitively simple prompt 'SOLUTION:'\u2014further evidence for the sensitivity of LLMs to prompts and the importance on finding effective prompts automatically.",
+   "PB remains limited compared to the open-endedness of human thought processes. First, the topology of prompting remains fixed ... we only adapt the prompt content not the prompting algorithm itself."
+  ],
+  "contribution": "Introduces Promptbreeder (PB), a general-purpose self-referential prompt-evolution system: (i) it evolves domain task-prompts while also evolving the mutation-prompts that govern how it modifies task-prompts (\"improving the way it is improving\"), (ii) reports state-of-the-art gains over hand-crafted prompt strategies on arithmetic/commonsense benchmarks, and (iii) ablates the self-referential components. No LLM parameter updates are required; natural language is the substrate of self-improvement.",
+  "methodology": "A binary tournament genetic algorithm over a population of ~50 \"units,\" each holding two task-prompts + one mutation-prompt (and optionally few-shot workings-out). A mutated task-prompt is P' = LLM(M + P); self-reference comes from also mutating M via a hyper-mutation prompt: M' = LLM(H + M). Fitness is accuracy on a random batch of 100 training Q&A pairs. Nine mutation operators in five classes (direct/zero-order & first-order, estimation-of-distribution/EDA & lineage, hyper-mutation, Lamarckian working-out-to-prompt, crossover + context shuffling) drive exploration; diversity is maintained via BERT-embedding cosine filtering (>0.95 similarity excluded). Runs use PaLM 2-L over typically 20-30 generations."
+ },
+ {
+  "file": "2510.06711_Inefficiencies_MetaAgents.pdf",
+  "title": "Inefficiencies of Meta Agents for Agent Design",
+  "year": "2025",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A skeptical empirical study showing that ADAS-style meta-agents (which use an LLM to iteratively design new agent architectures) fail to meaningfully learn from prior designs, produce behaviorally non-diverse agents, and are rarely economically justified\u2014undercutting claims that automated agent design generates genuinely valuable new solutions.",
+  "key_results": "Evolutionary curation gives up to +10% over cumulative on MGSM. Cumulative ~ or worse than Parallel (train avg best-agent: C 55.0, P 60.0, E 60.3). On test, best designed agent often only ties or barely beats the best initial-library agent (e.g., MMLU test Initial=62.8 vs C=66.2/P=67.8/E=65.8; GPQA test Initial=30.0 vs P=31.3, E=28.5). Coverage: Parallel highest (~95.9% avg). Inference cost ordering C > E > P > Initial (meta-designed always costlier than initial library). Break-even vs human-designed agents occurs only around n=15,000 examples for DROP and MMLU (parallel); for other datasets/methods the gains never justify the cost at any scale.",
+  "how_it_relates": "Directly supports the skeptical side of the review question. It shows that this influential class of self-designing/meta-agents is essentially a search/recombination over a fixed library of known human techniques (Chain-of-Thought, Majority Voting, Self-Refine, LLM-Debate, Quality-Diversity, Routing, Stepping-back). The meta-agent gains little from accumulating knowledge across iterations, produces agents that overlap heavily in behavior (i.e., it is NOT discovering distinct new capabilities), and the gains are marginal (a few accuracy points) and cost-inefficient. This is strong evidence that such \"self-evolving\" design is closer to constrained exploitation/recombination of already-known methods than to inventing fundamentally new mechanisms.",
+  "datasets": [
+   "MGSM (multilingual math reasoning; 128 train / 200 test)",
+   "DROP (reading comprehension; 128 train / 200 test; F1 metric)",
+   "MMLU (multitask; 128 train / 200 test)",
+   "GPQA (graduate-level science; 32 train x5 evals / 160 test)"
+  ],
+  "baselines": [
+   "ADAS / Cumulative context curation (Hu et al. 2024)",
+   "Parallel context curation (ignores prior designs)",
+   "Evolutionary context curation (top-k parents)",
+   "Best agent from the initial human-designed library (Initial, 'I') \u2014 CoT, Majority Voting, Self-Refine, LLM-Debate, Quality-Diversity, Routing, Stepping-back"
+  ],
+  "metrics": [
+   "Training accuracy / F1 (best agent, top-5/10/15 averages)",
+   "Held-out test accuracy / F1",
+   "Behavioral diversity via cosine similarity of per-example evaluation vectors (and Hamming distance robustness check)",
+   "Coverage (fraction of questions solved by at least one designed agent)",
+   "Economic viability: cost-of-pass / break-even example count (fixed design cost C0 + n * per-example inference cost Cj)"
+  ],
+  "limitations": "Scope limited to the sample-evaluate-iterate meta-agent class (may not generalize to other paradigms like trained/RL meta-agents or modular search). Evaluation limited to accuracy/F1, not consistency or other utilities. Economic analysis assumes strong verifiers. Cosine-similarity diversity metric is biased toward high-performing agents appearing similar (partially mitigated by Hamming-distance check). High stochasticity in meta-agent evaluation; results averaged over only 3 runs due to cost. Uses older models (gpt-3.5 executor, gpt-4o meta-agent).",
+  "code": "none found",
+  "evidence": "The paper demonstrates that accumulating all prior discovered agents in context (the mechanism by which cross-iteration \"learning\"/novelty compounding is supposed to happen) does not help and even hurts\u2014implying the meta-agent is not building on prior discoveries but re-deriving from the initial library of known human techniques. The behavioral-diversity analysis shows designed agents largely succeed/fail on the same examples (high cosine similarity, especially with evolutionary curation), meaning newly \"designed\" agents are behaviorally redundant rather than opening new solution regions. Gains are small (best-agent test performance often at or below the best initial-library agent; e.g., MMLU test: initial 62.8 vs designed 66.2/67.8/65.8) and rarely worth the design cost. There is NO novelty/discovery metric and no claim of inventing new mechanisms; the search space is explicitly recombination of seven known prompting/ensembling strategies. This is evidence for the elicitation/optimization view, not genuine invention.",
+  "quotes": [
+   "simply expanding the context with all previous agents, as proposed by previous works, performs worse than ignoring prior designs entirely",
+   "ADAS-style meta-agents derive limited benefits from prior agent designs and perform worse than ignoring prior designs entirely",
+   "While meta-agent-driven design can produce cost-effective agents in some cases, the performance gains rarely justify the increased design and inference costs, even at scale."
+  ],
+  "contribution": "Diagnoses three failure modes in the common \"sample-evaluate-iterate\" class of meta-agents: (1) cumulative context (feeding all prior designs, as in ADAS/Hu et al. 2024) performs WORSE than ignoring prior designs entirely; an evolutionary top-k context helps modestly; (2) designed agents lack behavioral diversity, limiting complementary/ensemble use; (3) the fixed cost of design plus higher inference cost rarely breaks even versus human-designed baseline agents, even at >15,000-example scale.",
+  "methodology": "Formalizes the meta-agent as Algorithm 1 (sample-evaluate-iterate over a code-space archive of agents, sampled by a gpt-4o meta-agent). Compares three context-curation functions phi: Cumulative (all prior agents, ADAS), Parallel (ignore prior designs, condition only on 7 initial-library agents), and Evolutionary (top-7 best-scoring parents). Runs T=30 iterations on four benchmarks with gpt-3.5 as the executor engine, measures training/test accuracy, behavioral diversity via cosine similarity of per-example evaluation vectors, coverage, and a cost-of-pass economic break-even analysis."
+ },
+ {
+  "file": "2506.13131_AlphaEvolve.pdf",
+  "title": "AlphaEvolve: A coding agent for scientific and algorithmic discovery",
+  "year": "2025",
+  "novelty_vs_elicitation": "argues_genuine_novelty",
+  "one_line": "An evolutionary LLM coding agent that, grounded by automated code-execution evaluation, evolves entire programs to discover provably-correct new algorithms and mathematical constructions that surpass prior state-of-the-art, most notably a 48-multiplication algorithm for 4x4 complex matrix multiplication (first improvement over Strassen in 56 years).",
+  "key_results": "4x4 complex matrix multiplication: rank 48 vs Strassen's 49 (first improvement in 56 years over characteristic-0 fields). Improved SOTA on 14 matrix-multiplication targets (e.g., <2,4,5> 33->32, <3,4,7> 66->63, <4,5,6> 93->90). On 50+ open math problems: matched best-known in ~75%, surpassed SOTA in ~20%; kissing number in 11 dimensions improved lower bound 592->593; new Erd\u0151s minimum-overlap upper bound. Engineering: Borg scheduling heuristic recovers on average 0.7% of Google fleet-wide compute (deployed); Gemini matmul kernel tiling heuristic 23% average kernel speedup and ~1% overall Gemini training-time reduction (deployed), cutting optimization from months to days; TPU Verilog circuit simplification (removed unnecessary bits, verified, integrated into upcoming TPU); FlashAttention XLA IR sped up 32%, pre/post-processing 15%. Ablations: full method beats No-evolution, No-context, No-meta-prompt, No-full-file, and small-LLM-only on both matmul and kissing-number tasks.",
+  "how_it_relates": "This is among the strongest published evidence that a self-evolving LLM agent can produce genuinely NEW artifacts rather than merely re-elicit memorized knowledge: it found a rank-48 decomposition for 4x4 complex matrix multiplication that beats the best result standing for 56 years, improved 14 matrix-multiplication targets, and set new records on open problems curated by Terence Tao and Javier Gomez Serrano (e.g., kissing number in 11D 592->593, Erd\u0151s minimum overlap upper bound). These are provably-correct, verifiable-against-ground-truth results that did not exist in the literature, so they cannot be explained as retrieval of latent training data. However, the paper itself frames the mechanism as scaling test-time compute over a base LLM ('significantly enhances the capability of the base LLM'), and ablations show the LLM's prior knowledge and prompt context are essential ingredients. So it supports genuine novelty of OUTPUTS while being agnostic/candid that the engine is amplifying, not replacing, latent LLM capability plus an external verifier. The novelty is guaranteed by an objective external oracle (exact math check / real hardware runtime), not by the LLM inventing a concept unprompted.",
+  "datasets": [
+   "14 matrix-multiplication tensor targets <m,n,p> for m,n,p <= 5 (e.g., <4,4,4>, <3,4,7>, <4,5,6>)",
+   "Curated set of 50+ open mathematical problems across analysis, combinatorics, number theory, geometry (incl. kissing numbers in 11D, Erd\u0151s minimum overlap, packing/Heilbronn, autocorrelation and uncertainty inequalities)",
+   "Google Borg data-center scheduling: historical fleet workload/capacity snapshots via a simulator, with held-out unseen recent workloads",
+   "Gemini Pallas matmul kernel tiling: realistic kernel input shapes collected from users, split 50/50 train/eval",
+   "TPU arithmetic circuit Verilog (matrix-multiplication unit)",
+   "XLA-generated IR of FlashAttention kernel (transformer attention) for a production inference model on GPU"
+  ],
+  "baselines": [
+   "Strassen (1969) recursive rank-49 for 4x4 over any field",
+   "AlphaTensor / Fawzi et al. 2023 (rank-47 for 4x4 only over GF(2); DeepRL specialized approach)",
+   "FunSearch (Romera-Paredes et al. 2023) predecessor",
+   "Best-known human/literature constructions and prior SOTA upper/lower bounds per math problem",
+   "Existing expert-designed production heuristics (Borg scheduler heuristic; expert-designed kernel tiling heuristic)",
+   "Deep reinforcement learning alternative (for scheduling, explicitly compared and rejected)",
+   "Ablated variants: No evolution, No context in prompt, No meta-prompt evolution, No full-file evolution, Small base LLM only"
+  ],
+  "metrics": [
+   "Tensor rank = number of scalar multiplications (lower is better), with fraction of random seeds achieving the rank as a hill-climbing signal",
+   "Provable correctness / exactness of decompositions (round to nearest integer or half-integer; formal verification)",
+   "Problem-specific optimality measures for math constructions (e.g., kissing-number count, minimum-overlap bound, packing ratios)",
+   "% problems where SOTA is matched (~75%) vs newly surpassed (~20%)",
+   "Real-world engineering: % fleet compute recovered, % kernel/attention speedup, % Gemini training-time reduction, area/power for circuits",
+   "Compute budget vs aggregated target metric (ablation curves)"
+  ],
+  "limitations": "Requires an automated (machine-gradeable) evaluator, excluding domains needing manual experimentation such as much of the natural sciences; LLM-provided evaluation of ideas is possible but not optimized for. Results depend heavily on the base LLM quality (improves as LLM improves) and on human problem formulation/search-space definition (open math problems were suggested and framed with expert mathematicians Tao and Gomez Serrano). It is a 'white paper' with limited detail on some deployed applications; a fuller math paper is promised later. The engine is characterized as a test-time-compute amplifier of the base model, so novelty relies on external verification and search rather than proof of intrinsic conceptual invention. Self-improvement feedback loops are 'moderate' and operate on the order of months. Some circuit improvements were independently found by downstream synthesis tools.",
+  "code": "Results/decompositions and new mathematical constructions released at https://colab.research.google.com/github/google-deepmind/alphaevolve_results/blob/master/mathematical_results.ipynb (results only; the AlphaEvolve system itself is not open-sourced)",
+  "evidence": "The evidence for genuine novelty is the discovery of provably-correct, verifiable constructions that surpass documented human SOTA and were previously unknown: rank-48 for <4,4,4> complex (open for 56 years), 14 improved matrix-multiplication upper bounds (e.g., <3,4,7> 66->63, <4,5,6> 93->90), a new kissing-number lower bound in 11 dimensions (592->593), and a new Erd\u0151s minimum-overlap upper bound. These are checked by exact/half-integer rounding and formal verification, so they are not hallucinations or retrievals. Ablations (Fig. 8) causally show that evolution, in-prompt context, meta-prompt evolution, full-file evolution, and large base LLMs each contribute materially, and 'AlphaEvolve performs increasingly better as the underlying LLM improves.' The paper explicitly casts the agent as a test-time-compute amplifier of the base LLM sustained by machine feedback, which is the elicitation-side caveat: novelty comes from search + external verification over the LLM's proposal distribution, not from the LLM autonomously conceiving a brand-new theory. Net: novel, valuable outputs are demonstrated, but the mechanism is search/verification-driven elicitation of the base model rather than proof that the model 'invents' concepts.",
+  "quotes": [
+   "AlphaEvolve discovered novel, provably correct algorithms that surpass state-of-the-art solutions on a spectrum of problems in mathematics and computer science ... developed a search algorithm that found a procedure to multiply two 4x4 complex-valued matrices using 48 scalar multiplications; offering the first improvement, after 56 years, over Strassen's algorithm in this setting.",
+   "AlphaEvolve can also be seen as a test-time compute agent that, through its evolutionary procedure, significantly enhances the capability of the base LLM (compared to, e.g., repeated sampling).",
+   "This evaluation mechanism allows AlphaEvolve to avoid any incorrect suggestions from the base LLM ... enabling the discovery of candidates that are substantially different from the initial candidate pool in syntax and function."
+  ],
+  "contribution": "AlphaEvolve orchestrates an autonomous pipeline of frontier LLMs (Gemini 2.0 Flash + Pro) inside an evolutionary loop that repeatedly proposes diffs to a program, executes and scores them via a user-supplied evaluator, and stores/resurfaces solutions in a MAP-Elites + island-based program database. It substantially extends FunSearch: evolves entire multi-file codebases (hundreds of lines, any language) rather than a single Python function, supports multi-objective optimization, and uses rich natural-language context and feedback. Demonstrated on: 14 improved matrix-multiplication tensor decompositions, 50+ open math problems, and 4 deployed Google infrastructure optimizations.",
+  "methodology": "The user marks EVOLVE-BLOCK regions in an initial (possibly rudimentary) program and provides an automated evaluate() function returning scalar metrics to maximize. An evolutionary controller samples a parent program plus 'inspiration' programs from the database, builds a rich prompt (prior solutions, scores, explicit problem context, meta-prompts), and asks an LLM ensemble to emit SEARCH/REPLACE diffs. Children are executed through an evaluation cascade (cheap-to-expensive test stages, up to ~100 compute-hours, parallelized), scored, and added back to the database (MAP-Elites + islands) balancing exploration and exploitation. Crucially, code execution grounds the search so incorrect LLM suggestions are filtered out, allowing thousands of iterations. AlphaEvolve can evolve the solution directly, a constructor function, or a tailored search heuristic (multi-stage adaptive heuristics were key for the math results)."
+ },
+ {
+  "file": "2409.04109_CanLLMsGenerateNovelIdeas.pdf",
+  "title": "Can LLMs Generate Novel Research Ideas? A Large-Scale Human Study with 100+ NLP Researchers",
+  "year": "2024",
+  "novelty_vs_elicitation": "mixed_or_neutral",
+  "one_line": "A controlled, blind human study of 100+ NLP researchers finds that ideas from a simple RAG + overgenerate-and-rank LLM agent are rated significantly MORE novel than expert-written ideas (though slightly less feasible), while exposing key agent limitations (idea-diversity collapse and unreliable LLM self-evaluation).",
+  "key_results": "Novelty (Test 1, per-review): Human 4.84 vs AI 5.64 (p<0.01) vs AI+Rerank 5.81 (p<0.001). Test 2 (per-idea, N=49): Human 4.86 vs AI 5.62 (p=0.03) vs AI+Rerank 5.78 (p<0.01). Test 3 (per-reviewer): AI novelty +0.94 (p<0.01), AI+Rerank +0.86 (p<0.01) over human. Excitement also higher for AI (e.g. +0.73/+0.87, p<0.05). Feasibility slightly lower for AI (6.34/6.44 vs 6.61 human, not significant / negative diff -0.29). Diversity ceiling: only ~200 non-duplicate ideas out of 4000 generated per topic. Ranker: Claude-3.5 zero-shot 71.4% on ICLR accept/reject pairwise. Evaluation reliability: best LLM evaluator (Claude-3.5 pairwise) only 53.3%, below human inter-reviewer 56.1%; 'AI Scientist' reviewer 43.3%. Human idea-writers self-rated their submitted idea as ~top 43% of their own past ideas.",
+  "how_it_relates": "Directly central: it provides the strongest existing human-graded evidence that an LLM ideation agent can produce output judged MORE novel than expert humans on the very first step of research. However, the agent is essentially prompt+RAG+scaled-sampling+reranking over Claude-3.5, i.e. elicitation of latent knowledge rather than a mechanism designed to invent genuinely new science. The paper itself flags that (a) LLMs plateau at only ~200 non-duplicate ideas out of 4000 (diversity collapse), and (b) novelty was measured by subjective expert judgment of proposals, not by executed results or verified discovery. So it shows LLMs can EXPRESS ideas humans perceive as novel, but does NOT demonstrate the ideas are genuinely new/correct/valuable \u2014 the authors explicitly defer that to a follow-up execution study.",
+  "datasets": [
+   "49 expert-written NLP research ideas (idea-writers, 7 topics: Bias, Coding, Safety, Multilinguality, Factuality, Math, Uncertainty)",
+   "49 AI-generated ideas + 49 AI+Human-Rerank ideas from the agent",
+   "298 unique blind expert reviews",
+   "1200 ICLR 2024 LLM-related submissions with review scores/decisions (used to build/validate the ranker and as a reviewer-agreement baseline)",
+   "4000 seed ideas per topic generated by the agent (used for diversity analysis)",
+   "Pre-registered EMNLP 2024 comparison ideas on 23 topics (cached, follow-up)"
+  ],
+  "baselines": [
+   "Human Ideas (expert-written) as the primary baseline",
+   "AI Ideas condition (LLM ranker top-ranked)",
+   "AI Ideas + Human Rerank condition (first-author manual rerank, upper-bound estimate)",
+   "For ranker validation: GPT-4o (61.1%) and Claude-3-Opus (63.5%) vs Claude-3.5-Sonnet (71.4%) on ICLR accept/reject pairwise prediction",
+   "For evaluator reliability: GPT-4o Direct/Pairwise, Claude-3.5 Direct/Pairwise, and the 'AI Scientist' (Lu et al. 2024) reviewer agent",
+   "Reference agreement baselines: NeurIPS'21 (66.0%), ICLR'24 (71.9%)"
+  ],
+  "metrics": [
+   "Novelty score (1-10, expert blind review) \u2014 the key NOVELTY metric",
+   "Excitement (1-10)",
+   "Feasibility (1-10)",
+   "Expected Effectiveness (1-10)",
+   "Overall score (1-10)",
+   "Non-duplicate idea percentage / accumulated unique ideas (cosine sim >0.8 threshold) \u2014 a DIVERSITY/discovery-ceiling metric",
+   "Inter-reviewer balanced-accuracy consistency (agreement metric)",
+   "AI-vs-human evaluator agreement (LLM-as-judge reliability)",
+   "Overlap between AI ideas and accepted papers (planned, follow-up)"
+  ],
+  "limitations": "Authors emphasize: (1) idea-level novelty judgments are subjective (inter-reviewer agreement only 56.1%, below conference norms) and made without seeing executed results; (2) human baseline may not reflect experts' best ideas (median-level, produced on-the-spot in 10 days, self-rated top-43%); (3) LLM diversity collapses \u2014 ~200 unique ideas from 4000, capping the over-generate-and-rank paradigm; (4) LLMs cannot reliably self-evaluate ideas (LLM-as-judge below human agreement), undermining trust in fully-automated pipelines; (5) study underpowered to conclusively resolve excitement/feasibility trade-offs. Broadly, novelty here means perceived novelty of a written proposal, not verified/executed discovery \u2014 hence the planned end-to-end execution study and the EMNLP-2024 contamination-controlled comparison.",
+  "code": "https://github.com/NoviScl/AI-Researcher (agent implementation + all human review scores); pre-registration/cached EMNLP ideas at https://osf.io/z6qa4; execution study signup https://tinyurl.com/execution-study",
+  "evidence": "The paper demonstrates human-perceived novelty (blind expert reviewers rate AI ideas higher on the novelty metric, robustly across three tests and mixed-effects models), which is genuine evidence that outputs are not obviously derivative to experts. BUT the mechanism is pure elicitation of latent LLM knowledge: RAG grounding + massive over-sampling (4000 seed ideas) + reranking, with no learning, environment feedback, or self-evolution. Crucially the paper shows the ceiling of this elicitation: only ~200 unique non-duplicate ideas emerge from 4000, so scaling sampling mostly re-surfaces the same latent ideas rather than producing unbounded novelty. Perceived-novelty is also confounded by subjectivity (inter-reviewer agreement only 56.1%, below NeurIPS'21 66% and ICLR'24 71.9%), and human baseline ideas were self-rated as only ~top-43% of the writers' ideas. No execution or ground-truth-discovery metric is used, so the study cannot distinguish \"novel-and-correct invention\" from \"novel-sounding recombination.\" Net: strong evidence of perceived novelty, but the underlying process is elicitation, and genuine-discovery value is left unproven.",
+  "quotes": [
+   "we find LLM-generated ideas are judged as more novel (p < 0.05) than human expert ideas while being judged slightly weaker on feasibility.",
+   "out of the 4000 generated seed ideas, there are only 200 non-duplicate unique ideas. This sets a bottleneck on our inference-time scaling since increasing the number of generated ideas simply leads to repeating duplicate ideas.",
+   "we offer some empirical evidence that LLMs cannot evaluate ideas reliably yet... Even the best LLM evaluator \u2014 our own Claude-3.5 pairwise ranker \u2014 only achieves an accuracy of 53.3%, lower than our inter-reviewer consistency of 56.1%."
+  ],
+  "contribution": "The first statistically rigorous, large-scale, blind head-to-head comparison of LLM-generated vs. expert-human research ideas, with careful confounder control (matched topics, standardized template, LLM style-normalization). Establishes a human-baseline evaluation protocol and shows AI ideas are judged more novel (p<0.05) across three statistical tests, while diagnosing why the over-generate-and-rank paradigm is limited.",
+  "methodology": "Recruited 49 expert idea-writers and 79 expert reviewers (104 total, screened for AI-venue publications). Three conditions each with N=49 ideas: (1) Human Ideas, (2) AI Ideas (top-ranked from agent), (3) AI Ideas + Human Rerank. The agent uses Claude-3.5-Sonnet: RAG paper retrieval via Semantic Scholar API (up to 120 papers), generation of 4000 seed ideas per topic, dedup via MiniLM embeddings (cosine>0.8), then a Swiss-tournament pairwise LLM ranker calibrated on 1.2K ICLR-2024 submissions. All ideas normalized to a common style/template; reviewers gave blind 1-10 scores on novelty, excitement, feasibility, effectiveness, overall. Results analyzed with Welch's t-tests (Bonferroni) treating reviews, ideas, and reviewers as datapoints."
+ },
+ {
+  "file": "2410.14255_Nova_NoveltyDiversity.pdf",
+  "title": "Nova: An Iterative Planning and Search Approach to Enhance Novelty and Diversity of LLM Generated Ideas",
+  "year": "2024",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "Nova is an iterative planning-and-search agent that repeatedly plans what external knowledge to retrieve (rather than doing keyword/entity RAG) to generate research ideas that score higher on novelty and diversity than prior idea-generation agents.",
+  "key_results": "[\"3.4x more unique novel ideas vs baseline without the iterative framework (headline)\", \"At least 2.5x more top-rated ideas than SOTA methods across 170 seed papers (Swiss Tournament)\", \"Nova produced 619 ideas scored 4 and 2521 ideas scored 5 in the Swiss Tournament, far surpassing baselines\", \"Over 80% of Nova ideas are unique (Non-Duplicate Percentage), higher than baselines\", \"Human eval: Nova contributed 37.5% of the top-4 ideas (highest of 4 methods) and only 17.53% of the worst-4 ideas on overall quality; similar pattern for novelty\", \"Ablation unique-idea counts by step: full Nova grows; no-planning stagnates (step2 42.4 -> step3 44.1); no planning+no retrieval 25.3 -> 30.6 -> 31.35\", \"Human and automatic rankings agree on method ordering: Nova > AI-Scientist > ResearchAgent > AI-Researcher\"]",
+  "how_it_relates": "Directly relevant as a method whose entire value proposition is squeezing more \"novel\"/\"diverse\" ideas out of LLMs via better orchestration and retrieval, not via new learning. The mechanism (plan retrieval -> feed retrieved papers + internal knowledge -> generate -> self-reflect) is a sophisticated pipeline over frozen LLMs. Its own novelty metric is definitionally elicitation-relative: an idea counts as \"novel\" only if a retriever finds no similar existing paper (embedding cosine < 0.3), i.e. novelty = not-obviously-in-the-retrieved-corpus, which does not distinguish genuine invention from recombination of latent knowledge plus retrieved context. This makes Nova a strong exemplar of the \"better exploitation/elicitation\" side and a caution about how \"novelty\" gets operationalized.",
+  "datasets": [
+   "170 seed papers total: initial corpus 7,805 papers from CVPR 2024, ACL 2024, ICLR 2024; filtered by 'LLM' keywords to ~2,000; cut by citation thresholds (>=20 for ICLR 2024, >=10 for CVPR/ACL 2024) to 153; plus 17 papers from Hugging Face Daily Papers by user rating",
+   "Each of the 170 papers used to generate 100 ideas for evaluation (400 ideas per input paper across 4 methods)",
+   "Human-eval subset: 20 manually selected papers from ACL/CVPR/ICLR 2024 across NLP, CV, and general LLM fields",
+   "arXiv retrieval corpus (AI/NLP/CV categories), time range Jan 1 2022 to Aug 2024, used for novelty/diversity checking"
+  ],
+  "baselines": [
+   "AI-Researcher (Si et al., 2024)",
+   "AI-Scientist (Lu et al., 2024)",
+   "ResearchAgent (Baek et al., 2024)",
+   "Ablations: Nova without planning, and Nova without both planning and retrieval (K=5 papers retrieved for controlled comparison)"
+  ],
+  "metrics": [
+   "Quality: Swiss System Tournament score with Claude-3.5-Sonnet zero-shot pairwise ranker, 5 rounds per idea (score 0-5)",
+   "Novelty (automatic): LLM judges whether an idea is novel by checking top-10 most relevant retrieved papers; considered novel if no retrieved paper is 'similar', where similarity = all-MiniLM-L6-v2 embedding cosine > 0.3 (following Baek et al. 2024 / Si et al. 2024)",
+   "Diversity: proportion of unique (non-duplicate) ideas, duplicate threshold cosine 0.8 (Non-Duplicate Percentage)",
+   "Human evaluation: 10 PhD/professor experts rank best-4/worst-4 among 20 ideas per paper on Novelty, Feasibility, Effectiveness, Overall; tracked which methods produce top-20% of ideas"
+  ],
+  "limitations": "[\"No continuous improvement beyond 3 iterations (novelty/diversity gains plateau after 3 rounds)\", \"Planning uses only LLMs' internal knowledge with no reward function, which may limit planning effectiveness (future work: add reward function)\", \"Novelty/diversity are automated proxy metrics (retrieval + embedding thresholds), not validated as genuine scientific breakthrough; ideas are proposals only and never implemented or empirically tested\", \"Risk of idea homogenization / narrower perspectives from wide LLM use, acknowledged in ethics section\", \"Evaluation confounds: LLM-based ranker (Claude-3.5-Sonnet) evaluates ideas; human panel is small (10 experts, best/worst-4 ranking rather than absolute scoring)\"]",
+  "code": "none found",
+  "evidence": "The paper never demonstrates creation of genuinely new science; it demonstrates that a planning/search wrapper over frozen LLMs produces more items that pass an automated novelty check and win pairwise-quality tournaments. Gains come entirely from orchestration: seed diversification (10 discovery templates, trend tracking), LLM-planned retrieval of external papers, iterative 3x expansion, self-reflection, and k-means deduplication. The ablation shows that without external retrieval/planning, unique-idea counts stagnate (25.3->30.6->31.35), i.e. improvements are driven by injecting retrieved context and by the search wrapper, not by new capability. \"Novelty\" is measured as absence of a similar paper among the top-10 retrieved (embedding threshold 0.3) and diversity as proportion of non-duplicate ideas (threshold 0.8) \u2014 both are proxies for \"not redundant with retrieved corpus,\" not for genuine conceptual breakthrough. Evaluation is LLM/human preference ranking of idea proposals; no idea is implemented or empirically validated. The paper itself frames the method as leveraging the LLM's internal knowledge to plan retrieval, i.e. better exploitation of existing knowledge (both internal and external), which is elicitation/prompt-optimization in spirit rather than novel-concept generation.",
+  "quotes": [
+   "Nova leverages the internal knowledge of LLMs to generate search plans for external knowledge retrieval, significantly enhancing the effectiveness of the retrieval process.",
+   "we use LLMs to judge whether a generated idea is novel by checking the top 10 most relevant papers ... and if no paper is identified as containing a similar idea, it is considered novel ... if the cosine similarity threshold is larger than 0.3, we say that they are similar.",
+   "To mimic human intuition, we tap into the LLMs' internal knowledge to craft initial seed ideas."
+  ],
+  "contribution": "Introduces an iterative planning framework for LLM research-idea generation in which the LLM plans which knowledge to retrieve in each round, progressively broadening/deepening search; reports 3.4x more unique novel ideas vs no-framework baseline and at least 2.5x more top-rated ideas than SOTA agents across 170 seed papers.",
+  "methodology": "Three-stage pipeline: (1) multi-source seed idea generation from an input paper using references, a \"knowledge tracking\" module of trending recent papers (via social/GitHub engagement), 10 fundamental scientific-discovery methods (drawn from Kuhn's paradigm), LLM internal knowledge, plus self-check/self-critique/reflection, yielding 15 seed ideas; (2) T=3 iterations of planning-and-search where the LLM devises a search plan to retrieve papers that enhance novelty/diversity, generating 10 new ideas per idea then self-reflecting down to 3 (3x growth per iteration), replacing old seeds; (3) cluster 405 ideas via k-means into 100 clusters and expand cluster centers into detailed initial/final proposals (templates following Si et al. 2024)."
+ },
+ {
+  "file": "2603.15164_HindSight_FutureImpact.pdf",
+  "title": "HINDSIGHT: Evaluating LLM-Generated Research Ideas via Future Impact",
+  "year": "2026",
+  "novelty_vs_elicitation": "provides_measurement_method",
+  "one_line": "A time-split evaluation framework that scores LLM-generated research ideas by how well they match real, high-impact papers published after the generator's knowledge cutoff, revealing that LLM judges reward \"novel-sounding\" ideas that rarely anticipate actual research.",
+  "key_results": "HINDSIGHT: RA vs baseline mean 0.297 vs 0.119 (+0.178, p<0.001), a 2.5x gap; match rate 81% vs 42%; avg matches 9.0 vs 3.3. LLM-as-Judge Overall: 7.44 vs 7.40 (+0.03, p=0.584, n.s.); baseline rated HIGHER on Novelty (7.11 vs 6.68, p<0.001) and Impact (8.17 vs 7.87, p<0.001); RA higher only on Feasibility (7.68 vs 7.09). Correlation (RA): HINDSIGHT vs Novelty rho=-0.291 (p=0.003), vs Impact rho=-0.225 (p=0.025), vs Feasibility rho=+0.252 (p=0.012); baseline correlations all non-significant. Threshold sensitivity: RA/BL mean-score ratio grows monotonically from 1.1x (theta=0.93) to 3.8x (theta=0.965). Example match: an RA idea matched IP-Adapter (1,397 citations) at similarity 0.977.",
+  "how_it_relates": "This paper is squarely a measurement/evaluation contribution for the core question. It does not build a self-evolving agent; instead it offers an objective yardstick for whether generated ideas are \"genuinely anticipatory\" (aligned with real future research) versus merely \"novel-sounding.\" Its central empirical finding is a warning directly relevant to the novelty-vs-elicitation debate: the ideas an LLM judge rates as most novel are the LEAST likely to correspond to real future work (rho=-0.29), implying that subjective novelty signals reward speculative framing rather than genuine discovery. It also cautions that optimizing idea generators against LLM-judge scores may push toward \"impressive-sounding but ultimately vacuous ideas\" \u2014 i.e., a form of glorified prompt/score optimization. Importantly, its own \"conformity bias\" limitation flags that matching published work cannot by construction credit truly revolutionary ideas (e.g., inventing a wholly new paradigm), so it measures anticipation of real trends, not radical invention.",
+  "datasets": [
+   "Post-T ground truth pool: 27,589 unique AI/ML papers from Semantic Scholar API, published June 2023 - December 2025, across 10 research topics (with titles, abstracts, citation counts, venue info)",
+   "200 generated ideas: 100 from ResearchAgent (retrieval-augmented), 100 from vanilla baseline; 10 topics x 10 seeds/ideas each",
+   "Pre-T literature retrieved via Semantic Scholar API restricted to before June 2023"
+  ],
+  "baselines": [
+   "Vanilla baseline idea generator: same LLM (Llama-3.3-70B-Instruct) prompted with only topic name + generic instruction, no literature retrieval",
+   "ResearchAgent (retrieval-augmented, simplified 2-stage reimplementation) as the contrasting system",
+   "LLM-as-Judge (Qwen3-32B) as the competing/incumbent evaluation method being critiqued"
+  ],
+  "metrics": [
+   "HINDSIGHT score (max impact over matched future papers; impact = 0.6*normalized citations + 0.4*top-venue indicator)",
+   "Match rate (% of ideas matching >=1 ground truth paper) and average number of matches",
+   "LLM-as-Judge dimensions (1-10): Novelty, Feasibility, Expected Impact, Overall",
+   "Spearman correlation (rho) between HINDSIGHT and each LLM-Judge dimension",
+   "Mann-Whitney U test p-values; quadrant classification (True Positive, Hidden Gem, Overhyped, True Negative)"
+  ],
+  "limitations": "Authors list: (1) Scale \u2014 only 200 ideas across 10 topics, two systems. (2) Single embedding model \u2014 SPECTER2 base without adapter heads may miss structural/methodological novelty expressed in different terminology. (3) Ground truth incompleteness \u2014 27,589-paper pool does not cover all AI/ML; unmatched ideas get false-zero scores. (4) Threshold sensitivity \u2014 absolute scores depend on theta=0.96. (5) Conformity bias \u2014 rewards proximity to published work, potentially undervaluing genuinely novel/revolutionary ideas (the key caveat for the \"genuine novelty\" question). (6) Single judge model (Qwen3-32B). Additional: 30-month window may miss slower-to-materialize ideas; topic-level semantic matching only.",
+  "code": "none found",
+  "evidence": "The paper demonstrates a validated proxy metric for \"idea anticipates real future research\" but explicitly does NOT measure genuine paradigm-shifting novelty. Evidence for its stance: (1) HINDSIGHT distinguishes retrieval-augmented from vanilla generation (0.297 vs 0.119 mean, 81% vs 42% match rate, p<0.001) whereas LLM-as-Judge overall does not (7.44 vs 7.40, p=0.584), showing subjective novelty scores fail to track real impact. (2) Negative correlation between HINDSIGHT and LLM-judged novelty (rho=-0.29, p=0.003) and impact (rho=-0.22), with positive correlation only for feasibility (rho=+0.25) \u2014 i.e., grounded/incremental-looking ideas match real work while grand/vague ones (\"holistic frameworks\", \"unified approaches\") match nothing. This is evidence that LLM \"novelty\" is largely surface framing, not discovery. However, the framework's ground-truth-matching design inherently rewards conformity to what WAS published, so by the authors' own admission it \"potentially undervalu[es] truly revolutionary ideas that open entirely new directions\" \u2014 it cannot certify genuine novelty, only anticipation of realized trends.",
+  "quotes": [
+   "The negative correlation between HINDSIGHT and LLM-judged novelty suggests that language models reward 'novel-sounding' framing over genuinely anticipatory thinking.",
+   "HINDSIGHT rewards matching published work, potentially undervaluing truly revolutionary ideas that open entirely new directions. We view this as an acceptable trade-off: the framework measures anticipation of real research trends, which is meaningful even if incomplete.",
+   "If LLM judges consistently fail to distinguish retrieval-augmented from vanilla generation, then optimizing idea generation systems against LLM judge scores may be misguided\u2014it could push systems toward producing impressive-sounding but ultimately vacuous ideas."
+  ],
+  "contribution": "Introduces HINDSIGHT, described as the first time-split, impact-grounded evaluation framework for research idea generation. It provides empirical evidence of a systematic disconnect between LLM-as-Judge scores and objective future-impact evaluation, and shows that LLM judges overvalue novel-sounding ideas while undervaluing ideas that anticipate real research trends (negative correlation between HINDSIGHT and LLM-judged novelty).",
+  "methodology": "Fix a temporal cutoff T (June 2023) below the generator LLM's knowledge cutoff (Llama-3.3-70B, Dec 2023 cutoff, 6-month margin). Restrict the idea-generation system to pre-T literature, then treat papers published in the following 30 months (post-T pool of 27,589 Semantic Scholar AI/ML papers) as ground truth. Each generated idea (problem + method) and each paper (title + abstract) is encoded with SPECTER2 (768-dim), matched via a FAISS cosine-similarity index (top-K=20, threshold theta=0.96). Matched papers are impact-scored as h(p)=0.6*normalized_citations + 0.4*top_venue_indicator; the idea's HINDSIGHT score is the max impact over its matches (0 if no match). Compared against LLM-as-Judge (Qwen3-32B, 4 dimensions, 3 runs averaged)."
+ },
+ {
+  "file": "2605.19576_LibraryDrift.pdf",
+  "title": "Library Drift: Diagnosing and Fixing a Silent Failure Mode in Self-Evolving LLM Skill Libraries",
+  "year": "2026",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A skeptical diagnosis showing that self-evolving LLM skill libraries silently degrade (\"library drift\") without outcome-driven lifecycle governance, and that even with a working fix the \"skills\" are just curated natural-language prompt snippets that recover latent model capability rather than create new knowledge.",
+  "key_results": "Default (full governance) lifts held-out pass@1 from 0.258 baseline to late-window mean 0.584 (peak 0.658), rolling gain +0.328 +/-0.018 over 100 rounds. A1 no-injection floor: +0.002 +/-0.005 (bank still has 42 active skills, 0 injected). A4 harsh retirement: -0.019 +/-0.010 (below baseline; bank collapses to 2 active skills; router engagement drops to 19%). Healthy conditions maintain 70-80% router engagement. Meta-skill removal (A3) costs 43-57% of gain (single most valuable component). Explicit dedup (A5 +0.374, A6 +0.363) slightly exceeds Default, i.e. unnecessary given meta-skill. Cost: ~14.5k LLM calls / 6.5h per 100 rounds vs 10k / 2.3h for no-skill baseline. Motivating external number: SkillsBench LLM-authored skills +0.0pp vs human-curated +16.2pp.",
+  "how_it_relates": "Strongly supports the \"elicitation, not novelty\" side. The entire gain comes from routing/injecting natural-language guidance into a frozen model's prompt: skills are never validated as new capabilities, and A1 shows that skill *creation* alone (synthesis running but no injection) yields +0.002 = zero gain, so all value is in the prompt-injection/routing act, i.e. the loop is a form of curated prompt optimization. Tasks are pre-filtered to ones \"where a skill library can plausibly help\" (Opus fails some of 5 seeds), and the recipe roughly doubles pass@1 on those already-solvable-by-some-seeds tasks, consistent with re-eliciting latent competence rather than inventing anything. The paper's own framing (\"the bottleneck is not the author; it is the librarian\") reframes self-evolution as a memory-management problem, not a discovery problem. It also documents that naive self-evolution actively harms (drift), a key cautionary data point for the review.",
+  "datasets": [
+   "MBPP+ hard-100 (100 tasks sampled from the 378-task MBPP+ test split after discarding ~273 tasks Claude Opus 4.7 solves on all 5 baseline seeds; 60 train / 40 eval)"
+  ],
+  "baselines": [
+   "No-skill baseline (round-0 pass@1, ~0.258)",
+   "A1 no skill injection (no-skill floor, +0.002)",
+   "A2 retrieval-only routing / no LLM gate (+0.077)",
+   "A3 no meta-skill (+0.187)",
+   "A4 harsh retirement (-0.019)",
+   "A5 no canonicalisation (+0.374)",
+   "A6 no cover-guard (+0.363)",
+   "A7 cap=100 (+0.317)",
+   "A8 meta-synth refresh (+0.372)",
+   "Prior systems named but not re-run: Voyager, ExpeL, AutoManual"
+  ],
+  "metrics": [
+   "Held-out pass@1 (primary end-task)",
+   "Gain = mean(last 10 rounds) - mean(first 10 rounds) of held-out pass@1",
+   "Per-skill contribution score c_hat(s) = (successes-failures)/trials (drift diagnostic)",
+   "Attribution verdicts: HELPED/HURT/NEUTRAL/INAPPLICABLE proportions (early-warning drift signal)",
+   "Router engagement (% eval tasks assigned a skill vs NONE)",
+   "Active/Retired bank size, Critic LLM verdict-call count",
+   "Operational cost: LLM calls, wall time"
+  ],
+  "limitations": "Authors state: (i) single benchmark (MBPP+ hard-100); generalization to broader/multi-step domains (SWE-Bench) left to future work; (ii) single model (Claude Opus 4.7), no cross-model stability; (iii) diagnostic intervention thresholds are empirically chosen, not principled; (iv) claim that drift signals sharpen in multi-step agents is only hypothesized. Additional (reviewer) limitations for the core question: workshop paper (ICML 2026 FAGEN workshop); tasks are pre-filtered to be skill-amenable, inflating apparent gains; no novelty/discovery metric at all; \"skills\" are natural-language prompt snippets so results speak to prompt curation, not knowledge creation; small n (3 seeds, 40 eval tasks) with wide variance; the non-divergence bound is admittedly loose.",
+  "code": "none found",
+  "evidence": "The paper never claims or measures creation of new knowledge; it measures pass@1 recovery on a curated hard subset. A1 (full synthesis pipeline runs but Router forced to NONE so no skill is injected) gives +0.002, proving skill *authoring* contributes nothing without prompt injection - the gain is entirely an injection/routing effect. A2 (retrieval-only, no LLM gate) gets +0.077 vs Default +0.328, showing the LLM gate (deciding when to inject) is the main lever. The \"meta-skill authoring prior\" (a stylistic prompt) is the single most valuable component (removing it costs 43-57% of gain), underscoring that stylistic prompt shaping, not discovered content, drives results. The cited SkillsBench headline (LLM-authored skills +0.0pp vs human-curated +16.2pp) is the motivating evidence that LLM self-authored skills add nothing absent human curation. There is no novelty metric, no held-out-domain transfer, no measure that skills encode information the base model lacked.",
+  "quotes": [
+   "Self-evolving skill libraries face a silent failure mode we term library drift: unbounded skill accumulation without outcome-driven lifecycle management causes retrieval degradation, false-positive injections, and performance stagnation.",
+   "LLM-authored skills deliver +0.0pp over no-skill baselines while human-curated ones deliver +16.2pp... The libraries grow, but the agents do not improve.",
+   "A1 (no skill injection)... Result: +0.002 ... This isolates the routing effect: skill creation alone, without injection, produces no gain.",
+   "The bottleneck in self-evolving skill libraries is not the author; it is the librarian."
+  ],
+  "contribution": "Defines \"library drift\" as a first-class failure mode of self-evolving skill libraries (accumulated artifacts push performance below the no-skill baseline), provides two reproducible ablation triggers that bracket it (A1 no-injection floor +0.002; A4 harsh-retirement active harm -0.019), introduces trace-level diagnostics (per-skill contribution scores, HELPED/HURT attribution verdicts, router engagement) that detect drift before end-task scores fall, and delivers a minimal governance recipe (\"Ratchet\") plus 8 ablations identifying which mechanisms are load-bearing.",
+  "methodology": "Ratchet is a single frozen-LLM loop (Router->Solver->Grader->Capsule; then Critic->Synthesizer->Curator) that writes, retrieves, curates, and retires its own natural-language skills across 100 rounds. Three governance mechanisms prevent drift: outcome-driven retirement (retire skill when n>=Nmin=100 trials and empirical contribution c<=-tau=0.10), a bounded active-cap (C=50, evict lowest-contribution skill), and a meta-skill authoring prior constraining the Synthesizer. New skills are born only from clusters of >=3 failures sharing a canonical pattern. A non-divergence proposition bounds expected pass@1 above no-skill floor minus (tau+eps+C*delta). Evaluated on MBPP+ hard-100 with Claude Opus 4.7, Cohere embed-v4, 3 seeds."
+ },
+ {
+  "file": "2602.12670_SkillsBench.pdf",
+  "title": "SkillsBench: Benchmarking How Well Agent Skills Work Across Diverse Tasks",
+  "year": "2026",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A paired (with-Skills vs. no-Skills) benchmark of 87 expertise-heavy containerized tasks showing that human-curated procedural Skills raise agent pass rates by +16.6 pp on average, while agent-self-generated Skills actually hurt performance, falling below the no-Skills baseline.",
+  "key_results": "Curated Skills raise average pass rate from 33.9% to 50.5% (+16.6 pp; 25.5% normalized gain); all 18 configurations improved, range +4.1 to +25.7 pp. Best with-Skills systems: OpenHands+GPT-5.5 67.3%, Codex+GPT-5.5 66.5%, Claude Code+Opus 4.7 61.2%. Largest lifts: OpenHands+GLM 5.1 +25.7 pp, Gemini CLI+Gemini 3.1 Pro +24.8 pp. Self-generated Skills FELL BELOW no-Skills baseline: -8.1 pp (Claude Code+Opus 4.7), -11.3 pp (Codex+GPT-5.5), -11.5 pp (Gemini CLI+Gemini 3.1 Pro). Domain gains: Natural Science +28.8, Media +24.1, Cybersecurity +18.9, ... Software Eng +11.6, Math/OR +9.7. Skill design: 1 skill +18.0 pp, 2-3 skills +19.0 pp, >=4 skills only +10.1 pp; compact/standard skills +19.0/+21.5 pp vs comprehensive prose +0.7 pp. Top task: llm-prefix-cache-replay 1.9% -> 94.4%; dapt-intrusion-detection 0% -> 81.5%. 13/87 tasks show negative deltas. Small model with skills (MiniMax M2.7 34.9%) beats larger models without (GLM 5.1 32.7%, MiniMax M3 29.7%).",
+  "how_it_relates": "Directly central to the elicitation-vs-novelty question through its Condition C (self-generated Skills) result. When agents author their OWN procedural knowledge and then use it, they perform WORSE than with no skills at all (-8.1 to -11.5 pp), whereas independently human-curated Skills add +18.2 to +24.8 pp on the same configurations. This is strong evidence that, in current systems, the value of Skills comes from externally injected human expertise the model did not already possess and could not regenerate for itself \u2014 not from an agent bootstrapping genuinely new procedural knowledge. The domain-level finding reinforces this: gains are largest exactly where procedural knowledge is underrepresented in pretraining (Natural Science +28.8, Cybersecurity +18.9) and smallest where models already have strong priors (Software Engineering +11.6, Math/OR +9.7), suggesting Skills fill knowledge gaps rather than create new capability the model could elicit on its own. However, the paper measures task success, not idea novelty, and its own limitations section admits gains could partly be a \"more context\" effect rather than genuinely new procedural structure.",
+  "datasets": [
+   "SkillsBench: 87 tasks across 8 domains (Software Engineering 16, Industrial & Physical Systems 14, Natural Science 14, Office & White Collar 14, Finance & Economics 9, Mathematics & OR 8, Cybersecurity 7, Media & Content Production 5)",
+   "Difficulty strata: 6 Core (<60 min), 53 Extended (1-4 h), 28 Extreme (>4 h)",
+   "Drawn from 400 candidate submissions by 142 contributors (grown from a 1,400-member community, 200+ onboarded authors)",
+   "Skill ecosystem construction snapshot: 2,014,000 deduplicated source-partitioned Skills (234,896 GitHub/source + 1,773,213 marketplace + 5,891 partner); 767,430 bundles cloned for structural stats"
+  ],
+  "baselines": [
+   "No-Skills condition (task instruction only) \u2014 the primary matched baseline (rA)",
+   "Curated-Skills condition (expert bundle mounted, must be discovered) (rB)",
+   "Self-generated Skills condition (agent authors packs via Anthropic skill-creator, then solves) (rC)",
+   "18 model-harness configurations spanning OpenHands, Claude Code, Codex CLI, Gemini CLI and models incl. GPT-5.5, Claude Opus 4.7/4.8, Gemini 3.1 Pro, GLM 5.1, DeepSeek V4, Kimi K2.6, MiniMax M2.7/M3, Grok 4.3"
+  ],
+  "metrics": [
+   "Task-macro pass rate (per-task pass/fail averaged over 3 trials, then macro-averaged over 87 tasks; Terminal-Bench scoring)",
+   "Absolute gain Delta (pp)",
+   "Normalized gain g = (pass_skill - pass_vanilla)/(1 - pass_vanilla) [Hake 1998] = fraction of remaining headroom closed",
+   "Skill Invocation Rate (fraction of curated trials whose trajectory reads/invokes a task-specific Skill)",
+   "No explicit novelty or discovery metric \u2014 measures task resolution only"
+  ],
+  "limitations": "Coverage limited to terminal-based containerized tasks (may not transfer to GUI/multi-agent/very-long-horizon). Causal attribution weak: Skills add context length, so gains \"could partly reflect 'more context' rather than procedural structure\" \u2014 no length-matched random/irrelevant-text baseline was run (flagged as future work). Self-generated deficit confounds content quality with skill-discovery and creator/solver interference. Containerization does not guarantee determinism or immunity to training-set leakage/memorization. Limited/evolving set of models and harnesses. Uses curated (high-quality) Skills, not ecosystem-representative or automatically selected lower-quality Skills. Skill composition effects not studied.",
+  "code": "Open-sourced benchmark, BenchFlow harness, and public trajectories/results (BenchFlow: https://github.com/benchflow-ai/benchflow; correspondence xiangyi@benchflow.ai); arXiv:2602.12670v4",
+  "evidence": "The paper demonstrates that curated Skills close a fraction of remaining headroom (25.5% normalized gain) on expertise-heavy tasks, but the load-bearing evidence for the core question is the self-generated arm: agents authoring their own skills land BELOW the no-Skills baseline on all three tested configurations, while human-curated skills add ~+18-25 pp. This shows the benefit is not something the model can produce for itself \u2014 it depends on injecting pre-existing human expertise. The trajectory audit attributes self-generated failure to \"creator-side authoring that displaces solver work\" and \"confidently wrong pack content.\" The paper frames Skills as filling procedural gaps (\"Skills close procedural gaps... most helpful when success depends on concrete procedures and verifier-facing details... smaller or negative when models already have strong priors\"), which is fundamentally an elicitation/knowledge-injection story, not novel-discovery. Crucially, the paper does NOT claim or measure creation of new ideas; it measures task resolution rate. It explicitly flags a confound: \"Skills injection increases context length, so observed gains could partly reflect 'more context' rather than procedural structure,\" and calls for length-matched random/irrelevant-text baselines it did not run. Net: the paper is evidence that Skills = better exploitation of injected (human) knowledge, and that current agents cannot self-generate that value.",
+  "quotes": [
+   "Self-generated Skills land below the no-Skills baseline on all three configurations (-8.1 pp on Claude Code + Opus 4.7, -11.3 pp on Codex + GPT-5.5, -11.5 pp on Gemini CLI + Gemini 3.1 Pro), while curated Skills add +18.2 to +24.8 pp on the same configurations.",
+   "Skills are most helpful when success depends on concrete procedures and verifier-facing details (steps, constraints, sanity checks), rather than broad conceptual knowledge... smaller or negative when models already have strong priors.",
+   "Skills injection increases context length, so observed gains could partly reflect 'more context' rather than procedural structure... Future work requires stronger length-matched baselines, such as random or irrelevant text and retrieval-only documentation."
+  ],
+  "contribution": "Introduces SkillsBench, the first benchmark treating Agent Skills as a first-class evaluation artifact. Two-tier contribution: (1) a quantitative measurement of \"how much do Skills help?\" via matched paired conditions, and (2) a general paired-evaluation framework (with vs. without augmentation on the identical task/container) with contributor-driven sourcing and leakage-controlled task-to-Skill decoupling, portable to other augmentations (RAG, memory, scaffolding).",
+  "methodology": "Each task is a containerized unit with fixed data, an oracle solution, and a deterministic pytest verifier. Every task is run under matched conditions differing only in Skill access: Condition A (instruction only), Condition B (curated expert-authored Skills bundle mounted, agent must discover them via progressive disclosure \u2014 Skills are never named in the instruction), and Condition C (self-generated: the agent first authors its own skill packs with Anthropic's skill-creator, then solves using only those). Efficacy is a paired delta at the (config, task) level: Delta_curated = rB - rA and Delta_self = rC - rA. Skills are contributor-authored independently of the benchmark and pass four automated leakage gates (rejecting task-specific filenames, magic numbers, verbatim oracle commands, expected outputs) so a Skill provides class-level expertise, never an instance answer key. Evaluated on the BenchFlow harness across 18 model-harness configurations (OpenHands, Claude Code, Codex CLI, Gemini CLI), 3 trials per cell."
+ },
+ {
+  "file": "2607.07504_LLMSkills_DataScientist_Ablation.pdf",
+  "title": "Do LLM-Generated Skills Make Better AI Data Scientists? A Component Ablation Across Data-Science Workflows",
+  "year": "2026",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "A large ablation study finding that low-curation, LLM-generated \"skill\" files provide no reliable improvement over task-only prompting for data-science agents, and perform no better than a token-matched irrelevant-content control.",
+  "key_results": "Aggregate spread across all 5 conditions only 1.2 pp (67.3%-68.5%); No-Skill=68.3%, Full=67.5%. No condition significant (all p>=0.396; mixed-model betas: Full -0.008 p=0.497, Core+Refs -0.010 p=0.396). Full vs token-matched Length-Control: +0.6 pp, p=0.775 (indistinguishable from irrelevant content). Full+Priority=68.7% (vs Full +1.2 pp p=0.362; vs No-Skill +0.4 pp p=0.875). By stage: Data Extraction 88.9->91.3 (ceiling), Reporting 97.6->99.2 (ceiling), Data Preparation 57.1->50.8 (skill HARMS), Stat. Analysis 29.4->28.6 (floor). On the 17 informative (30-80% baseline) tasks all skill conditions trend negative (Full -2.6 pp, Core-Only -5.2 pp). Full skills cost ~4.5x input tokens (mean 1,293 vs 287) with no accuracy gain. McNemar Core+Examples: 20 helped vs 19 hurt, p=1.000.",
+  "how_it_relates": "This is a strong negative/critical data point for the elicitation side of the core question, specifically for the simplest form of \"self-authored\" skills. When an LLM generates its own reusable guidance and injects it, it adds nothing beyond the task prompt: Full skills match a token-matched IRRELEVANT control (+0.6 pp, p=0.775), meaning any small effect is from prompt length/format, not from useful new knowledge. The paper's \"Redundancy at ceiling\" pattern directly supports elicitation: on SQL/JSON tasks the model already has the capability from pretraining, so the skill is redundant. Crucially, the paper shows LLM-generated skills fail to create genuinely useful new procedural knowledge, and can even HARM (conflicting generic heuristics override task-specific instructions). It contrasts with SkillsBench's finding that HUMAN-curated skills add +16.2 pp, implying the value comes from human novelty/curation, not from the LLM's self-generated content, i.e., LLMs cannot bootstrap novel useful skills for themselves here.",
+  "datasets": [
+   "56 custom tasks, 14 per stage: Data Preparation (CSV cleaning: null imputation, dedup, type coercion, date standardization) on Melbourne Housing, Titanic, UCI Wine Quality, Auto MPG, student performance",
+   "Data Extraction (text-to-SQL) using Spider schemas and Chinook/Northwind-style databases",
+   "Statistical Analysis (hypothesis testing, effect sizes) on Fisher Iris, mtcars, PlantGrowth, ToothGrowth, sleep",
+   "Reporting (structured JSON from APIs) using GitHub Events, OpenWeatherMap, REST Countries",
+   "Task split: 28 self-authored (Gemini-drafted) + 28 externally grounded"
+  ],
+  "baselines": [
+   "No-Skill (task prompt only) - primary baseline",
+   "Core-Only (Routing + Core Procedure)",
+   "Core+Examples",
+   "Core+Refs",
+   "Full skill (all 4 sections)",
+   "Length-Control (token-matched task-irrelevant office-supply skill)",
+   "Full+Priority (Full skill + task-over-skill directive)"
+  ],
+  "metrics": [
+   "Binary pass/fail from deterministic verifiers (aggregated by 2-of-3 majority vote per cell)",
+   "Pass rate (%) per model/condition/stage",
+   "Percentage-point (pp) difference vs No-Skill with bootstrap 95% CIs",
+   "Mixed-effects model coefficients (beta) and p-values",
+   "McNemar help/hurt flip counts",
+   "Input/output token footprint (cost)",
+   "NOTE: no explicit novelty or discovery metric is used; the paper measures task correctness, not idea novelty"
+  ],
+  "limitations": "Narrow scope: 56 single-turn tasks in one domain, only 17 in the informative 30-80% band; CIs span +/-4-6 pp so can rule out moderate but not small (1-3 pp) effects. Tests only single-shot flat-file injection, not multi-turn planning, tool use, code execution, memory, iterative revision, selective loading, system-level priority, or schema/tool constraints. No expert-written/task-specific positive-control skill, so benchmark sensitivity to genuinely good skills is unmeasured. One generated skill per stage (4 instances), so section effects are tied to few skill samples with no inter-generation variance estimate. Authorship overlap: Gemini 2.5 Pro helped author skills and self-authored tasks/gold outputs and is also an evaluated model. Condition-flip mechanism analysis is diagnostic only.",
+  "code": "none found (evaluation harness referenced but no public code/data URL given)",
+  "evidence": "The token-matched control is the decisive evidence: Full generated data-science skills perform statistically indistinguishably from task-IRRELEVANT office-supply content of equal length (Full vs Length-Control = +0.6 pp, 95% CI [-2.2,+3.4], p=0.775). This means the generated skill content carries no measurable useful information beyond adding formatted text, i.e., no new capability is being created. The \"Redundancy at ceiling\" pattern (SQL 88.9%, reporting 97.6% baselines) shows the model already possesses these capabilities from pretraining, leaving no room for a skill to add anything, consistent with pure elicitation of latent knowledge. Where baselines are moderate (data prep 57.1%), skills mostly HURT (-2.3 to -6.3 pp) because generic self-generated heuristics conflict with the actual task, showing the LLM-generated content is not creating correct new procedure. The contrast with human-curated skills (+16.2 pp in cited SkillsBench) implies whatever value exists comes from human input, not LLM self-generation. Caveat: no expert/positive-control skill was included, so the study cannot show the benchmark WOULD detect a genuinely good skill; and it tests only single-shot flat injection, not iterative/feedback-based skill learning.",
+  "quotes": [
+   "Compared with prompting using the task alone, neither the full generated skill nor any ablated skill variant significantly improves performance; all p-values are at least 0.396, and the total spread across variants is only 1.2 pp.",
+   "SkillsBench (86 tasks, 7,308 trajectories) found that human-curated skills improve performance substantially (+16.2 pp), while LLM-generated skills provide no aggregate benefit.",
+   "In these stages, skill content appears mostly redundant with behavior the model already has in this benchmark."
+  ],
+  "contribution": "Tests whether one LLM-generated SKILL.md per data-science lifecycle stage helps agents; ablates the skill into components (Routing, Core Procedure, Worked Examples, Reference Notes); and adds a token-matched irrelevant-content control plus a task-over-skill priority directive. Finds no reliable benefit from any full or ablated skill variant, and characterizes three failure regimes.",
+  "methodology": "One skill per lifecycle stage (data preparation, data extraction/SQL, statistical analysis, reporting) was generated autonomously by a Gemini 2.5 Pro coding agent with no human editing (the \"low-curation\" workflow), each with four sections. Skills are injected as a flat user-message prefix; ablation deletes sections mechanically to make 5 conditions (No-Skill, Core-Only, Core+Examples, Core+Refs, Full). Evaluated over 56 tasks x 9 model configs (3 providers) x 3 reps = 7,560 main runs, plus 1,512 runs each for a token-matched Length-Control (irrelevant \"office-supply\" skill within 1% token length) and a Full+Priority directive. Outcomes are binary pass/fail from deterministic verifiers; analyzed with mixed-effects models, bootstrap CIs, and McNemar tests."
+ },
+ {
+  "file": "2307.02477_ReasoningOrReciting.pdf",
+  "title": "Reasoning or Reciting? Exploring the Capabilities and Limitations of Language Models Through Counterfactual Tasks",
+  "year": "2023 (v1 arXiv Jul 2023; NAACL 2024)",
+  "novelty_vs_elicitation": "provides_measurement_method",
+  "one_line": "By evaluating LLMs on \"counterfactual\" variants of familiar tasks (same reasoning procedure, altered input-output mapping, e.g. base-9 arithmetic), the paper shows models degrade consistently and substantially relative to default conditions, evidencing reliance on memorized, default-condition-specific behavior rather than abstract, transferable reasoning.",
+  "key_results": "Counterfactual performance is consistently and substantially lower than default across all 11 tasks and 4 models, both with and without 0-CoT, while CCC accuracy is usually high (esp. for GPT-4). Arithmetic can drop from near-perfect to near-zero moving off base-10. \"Commonness\" matters: bases 8/16 beat 9/11; drop-D tuning gives GPT-4 its best counterfactual chord score; north-south axis swap degrades least (matplotlib/ggplot/D3 invert y-axis), sometimes even exceeding default for PaLM-2. Digit-scaling: base-10 addition accuracy decays far slower than other bases as operand length grows (memorization signature). Few-shot: up to 16 demonstrations reduce but do not eliminate the base-9/11/16 gap, and gains plateau by 16-shot. Logic: LLMs score higher with more true premises and when conclusion truthfulness matches the label (statistically significant), indicating reliance on real-world priors over symbolic deduction.",
+  "how_it_relates": "This is a foundational diagnostic for the core question. Self-evolving/Skills agents built on LLMs risk producing outputs that merely re-instantiate patterns memorized from pretraining (the \"default\" world). The counterfactual methodology operationalizes a test: a system possessing genuine, generalizable abstractions (the paper's explicit analogy is \"physicists using mathematical abstractions to make predictions about universes substantially different from our own\") should transfer to novel conditions with little degradation, whereas a system that has only found a better way to elicit memorized default-condition behavior will collapse when the world is shifted off the default. It also directly addresses the prompt-optimization worry: they argue CoT and few-shot demonstrations reduce but do NOT eliminate the gap, suggesting the deficit is not merely a prompting artifact. Thus it supplies a measurement lever for distinguishing \"new\" from \"elicited,\" while cautioning that reasoning and reciting are a continuum, not a dichotomy.",
+  "datasets": [
+   "11 counterfactual task suite (arithmetic in bases 8/9/11/16; spatial reasoning with swapped/rotated/permuted axes; drawing rotated/flipped objects in Processing; music: chord fingering with scordatura tunings and note retrieval under transposition; chess opening legality under Chess960; SET game with inverted number rule; first-order logic; basic syntactic reasoning; code execution; code generation)",
+   "HumanEval (code execution/generation, evaluated under fictional 1-based-indexing 'ThonPy')",
+   "FOLIO (first-order logic; premises manually rewritten to violate commonsense)",
+   "synthetic word-order-permuted English (subject-verb-object vs permuted orders, from dependency-tree manipulation) for syntactic reasoning",
+   "an existing guitar/ukulele chord database for chord fingering",
+   "all data synthetically generated and released"
+  ],
+  "baselines": [
+   "GPT-4 (gpt-4-0314)",
+   "GPT-3.5 (gpt-3.5-turbo-0301)",
+   "Claude (claude-v1.3)",
+   "PaLM-2 (text-bison-001, not the largest version)",
+   "each tested with and without zero-shot chain-of-thought ('Let's think step by step')",
+   "few-shot in-context demonstrations (up to 16-shot) as an additional condition for arithmetic",
+   "random-chance baseline reported per task"
+  ],
+  "metrics": [
+   "default-task accuracy vs counterfactual-task accuracy (and the gap between them as the key diagnostic of overfitting/reciting)",
+   "Counterfactual Comprehension Check (CCC) accuracy \u2014 controls for surface understanding of the altered rules",
+   "above-random-vs-random performance",
+   "correlation between default and counterfactual performance (evidence of a reasoning-reciting continuum)",
+   "logistic-regression coefficients predicting per-instance correctness from premise truthfulness features (logic probe)",
+   "instance-level all-objects-correct accuracy (spatial, ~16.7% random)"
+  ],
+  "limitations": "Counterfactual worlds are only \"less common,\" not truly alien, so counterfactual-ness is relative. Non-perfect CCC accuracy means default-vs-counterfactual gaps cannot perfectly disentangle reasoning failure from failure to comprehend the new rules (though gaps are often so large they remain strongly suggestive). Some tasks admit a \"revert-to-default\" shortcut \u2014 e.g. the model could map counterfactual tokens back to the default (headphones\u2192dogs in logic) or invert a drawing transform \u2014 which they could disallow for drawing but not for logic, inflating counterfactual scores there. Only closed models with unknown size/data were tested; the largest PaLM-2 was inaccessible. They cannot tractably rule out that some cleverer prompt could close the gap, and left more advanced prompting (self-consistency, ToT, etc.) to future work. Reasoning vs reciting is a continuum, so results bound but do not zero out genuine reasoning.",
+  "code": "https://github.com/ZhaofengWu/counterfactual-evaluation (code, all synthetic data, and LM prompts/responses released)",
+  "evidence": "The paper does not itself demonstrate LLMs creating anything genuinely new; rather it demonstrates the opposite tendency and gives a method to detect it. Evidence for elicitation/memorization over novel reasoning: (1) consistent, substantial counterfactual degradation across 11 tasks and 4 models even when CCC accuracy is high (arithmetic drops from near-perfect to near-zero in non-base-10); (2) a \"commonness\" effect where more frequent counterfactual conditions (bases 8/16 vs 9/11; drop-D guitar tuning; matplotlib-style inverted y-axis) yield smaller gaps, a memorization-like signature; (3) in the digit-scaling analysis, base-10 accuracy decays much more slowly than other bases with more digits, consistent with memorized input-output mappings rather than an executed algorithm; (4) in logic, a logistic-regression probe shows LLM correctness depends on premise truthfulness / conclusion-truth-matching-the-label, i.e. reasoning is contaminated by real-world priors instead of pure symbolic deduction; (5) 0-shot CoT and up to 16-shot demonstrations reduce but do not close the gap. Counter-evidence (mixed): above-random counterfactual performance on most tasks and a default-counterfactual correlation indicate SOME transferable reasoning co-exists \u2014 the authors explicitly frame reasoning vs reciting as a continuum, not a dichotomy.",
+  "quotes": [
+   "This suggests that these models' ability on these tasks is supported at least in part by non-transferable, default-condition-specific behaviors rather than abstract, generalizable reasoning skills.",
+   "an ideal learner with the right inductive biases should be able to structure their internal parameters and representations to implement general-purpose abstractions (e.g., the concept of addition), and use these abstractions to generalize to counterfactual conditions, analogous to physicists using mathematical abstractions to make predictions about universes that are substantially different from our own... LMs trained on large text corpora, remarkable as they may be, are still quite susceptible to overfitting with frequency effects.",
+   "given the consistency of the gap across our tasks (which use different prompts) and the 0-shot CoT setting, we believe that a prompt that completely bridges the default-counterfactual gap is unlikely."
+  ],
+  "contribution": "Introduces the counterfactual-task evaluation paradigm as a way to separate genuine, transferable reasoning (\"reasoning\") from recall/exploitation of frequently-seen default task instances (\"reciting\"). Provides a suite of 11 counterfactual tasks plus per-task Counterfactual Comprehension Checks (CCCs) that control for the confound of the model simply not understanding the altered rules.",
+  "methodology": "Take tasks LLMs do well on and change the \"world\" (conditions/rules) while preserving the underlying reasoning procedure; the specific input-output mapping function changes. Framed causally as a do-operator/intervention on the world state (Pearl). For each (default, counterfactual) pair they add a CCC control task that tests only surface understanding of the counterfactual rules, so that a low counterfactual score can be attributed to reasoning failure rather than instruction misunderstanding. They compare default vs counterfactual accuracy across 4 closed LLMs, with and without zero-shot chain-of-thought, plus follow-up analyses (commonness of the counterfactual, few-shot ICL, logistic-regression probe of premise truthfulness effects in logic)."
+ },
+ {
+  "file": "2304.15004_EmergentAbilities_Mirage.pdf",
+  "title": "Are Emergent Abilities of Large Language Models a Mirage?",
+  "year": "2023",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "Claimed \"emergent abilities\" of LLMs are largely an artifact of the researcher's choice of nonlinear/discontinuous metrics (plus too-small test sets), not sharp, unpredictable new capabilities that appear at scale.",
+  "key_results": "On both arithmetic tasks GPT-3 shows emergence at 4-5 digit targets under Accuracy but smooth predictable improvement under Token Edit Distance (same fixed outputs). With larger test sets, all four models score above-chance accuracy, decaying approximately geometrically with target length as the math predicts. In BIG-Bench, at most 5/39 metrics show emergence via emergence score; hand-annotated data shows emergence in only 4/39 metrics, with >92% of claimed emergent abilities under Multiple Choice Grade or Exact String Match. LaMDA emergence vanishes when swapping Multiple Choice Grade for Brier Score. They successfully induce emergence in 3 vision setups. Multiple-comparisons note: BIG-Bench has ~10^6 task-metric-model-family triplets (>=220 tasks x ~40 metrics x ~10 families).",
+  "how_it_relates": "This is the foundational skeptic for the review's core question. It argues that at least a large class of apparent \"new capabilities emerging at scale\" are not genuinely new behaviors but measurement artifacts overlaid on smooth, already-present, gradually-improving latent competence. For the Skills/Self-Evolving debate, it supplies the cautionary methodological lesson: an apparent leap to a \"new\" ability can be an illusion of the metric. It implies that to claim genuine novelty (not just better elicitation of latent knowledge), one must show gains under continuous/linear metrics with adequate statistics and proper controls for multiple comparisons \u2014 otherwise a \"discovery\" may just be a sharp scoring rule applied to smoothly-existing capability. It does not directly measure idea-novelty; it undercuts naive claims of qualitatively new capability.",
+  "datasets": [
+   "InstructGPT/GPT-3 outputs on 2-integer 2-digit multiplication (2-shot)",
+   "InstructGPT/GPT-3 outputs on 2-integer 4-digit addition (2-shot)",
+   "BIG-Bench (Srivastava et al. 2022) tasks and metrics; LaMDA outputs via BIG-Bench",
+   "Wei's 137 hand-annotated emergent abilities",
+   "CIFAR100 (autoencoder reconstruction)",
+   "Omniglot (Transformer character classification)",
+   "MNIST (LeNet CNN classification)"
+  ],
+  "baselines": [
+   "Wei et al. 2022 (Emergent Abilities of LLMs) claim",
+   "Ganguli et al. 2022 (Predictability and surprise)",
+   "Srivastava et al. 2022 (BIG-Bench) emergence-score methodology",
+   "Caballero et al. 2022 (Broken Neural Scaling Laws) - emergence-is-real view",
+   "Michaud et al. 2023 (Quantization model) - emergence-may-be-real view"
+  ],
+  "metrics": [
+   "Accuracy / subset accuracy (nonlinear)",
+   "Exact String Match (nonlinear)",
+   "Multiple Choice Grade (discontinuous)",
+   "Token Edit Distance (linear)",
+   "Brier Score (continuous, proper scoring rule)",
+   "ROUGE-L-Sum (shown to be sharp)",
+   "Per-token cross-entropy / per-token probability correct",
+   "Emergence Score (Eqn. 1, from Srivastava et al. 2022) - the paper's proxy 'discovery/emergence' metric"
+  ],
+  "limitations": "Analysis assumes constant per-token error probability and per-token independence (both acknowledged as empirically false, used as approximations); the power-law form is illustrative, not required. GPT analysis limited to arithmetic tasks and one publicly-queryable family; meta-analysis relies on published/available outputs (LaMDA) since most model families are not queryable. Authors explicitly do not claim LLMs cannot have emergent abilities \u2014 only that prominently claimed ones may be a mirage. Does not measure idea-level novelty/discovery; addresses capability-vs-metric, not creativity vs elicitation directly.",
+  "code": "none found (paper mentions models queried via OpenAI API as of 2023-03-15 and BIG-Bench public data; no explicit code URL in main body)",
+  "evidence": "The paper demonstrates that fixed model outputs, rescored under a linear metric (Token Edit Distance) instead of Accuracy, show smooth/predictable improvement \u2014 the \"emergent\" jump disappears without changing the model at all. On BIG-Bench, of 39 metrics at most 5 show emergence, and >92% of hand-annotated emergent abilities occur under just two metrics (Multiple Choice Grade, Exact String Match); switching LaMDA from Multiple Choice Grade to continuous Brier Score removes emergence. It further proves the point constructively by inducing brand-new \"emergent\" abilities in vision nets (CIFAR100 autoencoders, Omniglot Transformers, MNIST LeNet) purely by defining sharp subset-accuracy metrics. This shows underlying capability was smoothly present and merely revealed discontinuously by the metric \u2014 i.e., the \"new capability\" is illusory, supporting the elicitation/artifact side rather than genuine novel-capability creation. Caveat: authors explicitly do not claim LLMs can never have emergent abilities.",
+  "quotes": [
+   "for a particular task and model family, when analyzing fixed model outputs, emergent abilities appear due the researcher's choice of metric rather than due to fundamental changes in model behavior with scale",
+   "emergent abilities are a mirage caused primarily by the researcher choosing a metric that nonlinearly or discontinuously deforms per-token error rates, and secondarily by possessing too few test data",
+   "we induce never-before-seen, seemingly emergent abilities in multiple architectures across various vision tasks by intentionally changing the metrics used for evaluation"
+  ],
+  "contribution": "Proposes and tests an alternative explanation for emergent abilities: sharp/unpredictable jumps arise because nonlinear (e.g., Accuracy/Exact-String-Match) or discontinuous (Multiple Choice Grade) metrics deform a smoothly, predictably improving per-token error rate. Shows emergence \"evaporates\" under linear/continuous metrics or with more test data, and even constructs never-before-seen emergent abilities in vision models by deliberately choosing sharp metrics.",
+  "methodology": "A simple mathematical model assumes per-token cross-entropy falls as a power law with scale; nonlinear metrics like Accuracy = (1-eps)^L decay geometrically in target length, producing apparent sharp jumps, while linear metrics (Token Edit Distance) reveal smooth improvement. They test three predictions on the public InstructGPT/GPT-3 family (350M/1.3B/6.7B/175B) on 2-digit multiplication and 4-digit addition, a meta-analysis of BIG-Bench metrics/tasks/model families using Srivastava et al.'s \"emergence score,\" and demonstrations inducing emergence in autoencoders (CIFAR100), causal Transformers (Omniglot), and LeNet CNNs (MNIST) via subset-accuracy metrics."
+ },
+ {
+  "file": "2310.01798_CannotSelfCorrect.pdf",
+  "title": "Large Language Models Cannot Self-Correct Reasoning Yet",
+  "year": "2024",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "Without external feedback, LLMs cannot improve their reasoning by \"self-correcting\" and usually get worse; reported gains in prior work come from oracle labels, unfair inference-cost comparisons, or weak initial prompts rather than any genuine internal error-correction ability.",
+  "key_results": "Intrinsic self-correction degrades accuracy across the board. GPT-3.5 GSM8K: 75.9 -> 75.1 -> 74.7 (rounds 1,2); CommonSenseQA: 75.8 -> 38.1 -> 41.8; HotpotQA: 26.0 -> 25.0. GPT-4 GSM8K: 95.5 -> 91.5 -> 89.0; CommonSenseQA 82.0 -> 79.5 -> 80.0; HotpotQA 49.0 -> 49.0 -> 43.0. Llama-2 GSM8K: 62.0 -> 43.5 -> 36.5; CommonSenseQA 64.0 -> 37.5 -> 36.5. With ORACLE labels, gains reappear (GPT-3.5 GSM8K 75.9 -> 84.3; CommonSenseQA 75.8 -> 89.7; GPT-4 HotpotQA 49.0 -> 59.0), confirming the improvement depends on the leaked ground truth. Transition analysis: on GSM8K GPT-3.5 changes correct->incorrect (8.8%) more than incorrect->correct (7.6%). Multi-agent debate vs self-consistency at equal budget: debate 83.2 (6 resp) vs SC 85.3 (6), debate 83.0 (9) vs SC 88.2 (9). Constrained Generation: standard prompt (theirs, full spec) 81.8 vs self-correct 67.0/75.1.",
+  "how_it_relates": "Directly central and cautionary for the review's core question. It provides the strongest existing case that iterative self-improvement loops which lack an external verifier do NOT create anything new: the model cannot even reliably judge its own reasoning, so \"self-correction\" without a ground-truth or tool signal is at best a no-op and often harmful. It frames the improvement in prior self-correction work as an artifact of (a) oracle labels leaking the answer, (b) selection over multiple samples (self-consistency in disguise), or (c) feedback prompts that merely inject task instructions that should have been in the initial prompt, i.e., prompt-engineering effects rather than emergent capability. Implication for Skills/Self-Evolving agents: gains attributed to \"self-evolution\" must be checked against the possibility that they are elicitation/prompt-optimization or verifier-driven selection, not genuine novelty. The paper's flip side is also important: it argues external feedback (unit tests, calculators, trained verifiers) IS what unlocks real correction, suggesting genuine improvement requires a grounding signal outside the model's own priors.",
+  "datasets": [
+   "GSM8K (1,319 grade-school math word problems; subsets of 200 for some models)",
+   "CommonSenseQA (dev set, 1,221 multiple-choice commonsense questions; subsets of 200)",
+   "HotpotQA (100 multi-hop QA questions, closed-book, exact-match)",
+   "CommonGen-Hard / Constrained Generation (20-30 concept coverage task, from Self-Refine/Madaan et al. 2023)"
+  ],
+  "baselines": [
+   "Standard Prompting (single initial generation)",
+   "Self-Correct with oracle labels (RCI-style, Kim et al. 2023; Reflexion, Shinn et al. 2023)",
+   "Intrinsic Self-Correction (no oracle, rounds 1-2, multiple feedback prompts)",
+   "Multi-Agent Debate (Du et al. 2023, 3 agents / 2 rounds)",
+   "Self-Consistency majority voting (Wang et al. 2022) at matched response counts",
+   "Self-Refine (Madaan et al. 2023) on Constrained Generation vs a stronger initial prompt"
+  ],
+  "metrics": [
+   "Accuracy / exact-match on reasoning benchmarks",
+   "Number of model calls / responses (inference-cost-matched comparison)",
+   "Answer-change transition rates: No Change, Correct->Incorrect, Incorrect->Correct, Incorrect->Incorrect",
+   "Concept coverage (for Constrained Generation)"
+  ],
+  "limitations": "Scope is limited to reasoning tasks; the authors note self-correction can still help for aligning style/safety/appropriateness where the model can reliably judge its output (e.g., moral self-correction), just not for detecting reasoning errors. Only two rounds of self-correction are tested. Sample sizes are small for some settings (200 per dataset, only 100 for HotpotQA, which they exclude from transition analysis as underpowered). Evaluation covers a fixed set of models (GPT-3.5/4/4-Turbo, Llama-2-70b) and specific prompts; other self-correction strategies or domains might behave differently. The positive claim that external feedback helps is cited from other work rather than newly measured here.",
+  "code": "none found (no code URL given; reproducibility statement points to public OpenAI API model kernels e.g. gpt-3.5-turbo-0613, access dates, and prompts in Appendix A)",
+  "evidence": "The paper demonstrates that improvements claimed for self-correction are not new capability but artifacts of information injection or sample selection. Concretely: gains vanish when oracle labels are removed (GPT-3.5 GSM8K 75.9->74.7, CommonSenseQA 75.8->41.8 after 2 rounds); multi-agent debate (83.0 at 9 responses) underperforms plain self-consistency at equal budget (88.2 at 9 responses), showing the effect is \"self-consistency\" via selection, not \"self-correction\"; and for Constrained Generation, simply putting the full requirement into the initial prompt (81.8) beats the self-corrected result (67.0/75.1), showing the apparent gain came from feedback-prompt instructions, i.e., prompt optimization. It also directly poses the paradox that if an LLM could self-correct it would just answer correctly initially, and finds \"the fundamental issue is that LLMs cannot properly judge the correctness of their reasoning.\" This is squarely on the elicitation side: no evidence of new-idea generation, and the mechanism reframes reported wins as prompt design or selection over the model's existing answer distribution.",
+  "quotes": [
+   "If an LLM possesses the ability to self-correct, why doesn't it simply offer the correct answer in its initial attempt?",
+   "The fundamental issue is that LLMs cannot properly judge the correctness of their reasoning.",
+   "The observed improvement is evidently not attributed to 'self-correction', but rather to 'self-consistency'."
+  ],
+  "contribution": "A skeptical, empirical audit that debunks claims of \"intrinsic self-correction\" for reasoning. It (1) defines intrinsic self-correction (no external/oracle feedback), (2) shows performance drops after self-correction across GPT-3.5, GPT-4, GPT-4-Turbo, and Llama-2, (3) identifies three methodological flaws in prior work: reliance on oracle labels (RCI/Reflexion), unfair comparison of multi-agent debate vs self-consistency at equal inference cost, and sub-optimal initial prompts (Self-Refine), and (4) offers guidelines for fair future evaluation.",
+  "methodology": "The authors replicate existing self-correction pipelines using a three-step prompting strategy (initial answer -> self-generated feedback -> revised answer) and compare results with vs. without oracle labels that tell the model when its answer is already correct. They also benchmark multi-agent debate against self-consistency (majority vote) at matched numbers of model responses, and re-run Self-Refine's Constrained Generation task after strengthening the initial prompt to include the full task specification. They analyze answer-change transitions (correct->incorrect vs incorrect->correct) to explain why accuracy degrades."
+ },
+ {
+  "file": "2203.14465_STaR.pdf",
+  "title": "STaR: Bootstrapping Reasoning With Reasoning (Self-Taught Reasoner)",
+  "year": "2022",
+  "novelty_vs_elicitation": "argues_elicitation_or_prompt_opt",
+  "one_line": "STaR bootstraps a pretrained LLM into a stronger reasoner by having it generate chain-of-thought rationales, keeping only those that yield correct answers (plus \"rationalized\" ones generated with the answer as a hint), and iteratively fine-tuning on its own filtered rationales.",
+  "key_results": "CommonsenseQA dev: STaR with rationalization 72.5%, STaR without 68.8%, vs GPT-J Direct Finetuned 60.0%, few-shot CoT GPT-J 36.6%, few-shot direct 20.9%; comparable to 30x-larger GPT-3 fine-tuned (73.0%). Reported as +35.9% over few-shot baseline and +12.5% over direct fine-tuned. Arithmetic: 89.5% overall after 16 iterations vs 76.3% for a no-rationale baseline (5,000 steps); few-shot arithmetic accuracy is near-zero (2-digit <1%). Rationalization lifts 2-digit addition from <1% to 32% after one iteration and enables OOD 9-10 digit solving. GSM8K test: STaR with rationalization 10.7%, without 10.1%, vs GPT-J Direct Finetuned 5.8% and few-shot 3.0-3.1% \u2014 achieved using only ~25-28.7% of training data. Human eval: raters 30% more likely to prefer STaR over few-shot rationales (p=.039) and 74% more likely to prefer STaR over human rationales (p<.001).",
+  "how_it_relates": "This is a strong prior-art anchor for the \"elicitation\" side of the question. STaR explicitly describes itself as \"leveraging the LLM's pre-existing reasoning ability\" and bootstrapping it \u2014 it never introduces external verification, new information, or ground truth beyond answer labels the dataset already contains. The gains come from amplifying and stabilizing latent reasoning the base model can already produce few-shot (the first iteration requires above-chance few-shot performance; GPT-2 could not bootstrap at all). It does show one narrow signal beyond pure elicitation: out-of-distribution generalization to 9-10 digit arithmetic never seen in training, and occasional novel/shorter solution paths than the human ground truth on GSM8K. But there is no metric of conceptual novelty or discovery of genuinely new ideas; \"improvement\" is measured purely as task accuracy and rationale-preference rankings. It supports the view that self-evolving-by-self-training largely re-weights and elicits existing capability rather than inventing new concepts, while hinting that OOD length-generalization is a modest form of going beyond the training distribution.",
+  "datasets": [
+   "Arithmetic (n-digit addition with scratchpads, generated per Nye et al. 2021; 50,000 sampled questions, digits 1-5, plus OOD 9-10 digit eval)",
+   "CommonsenseQA (CQA; 9,741 train / 1,221 dev / 1,285 test, 5-way multiple choice, from ConceptNet)",
+   "GSM8K (grade-school math word problems; 7,473 train / 1,319 test)"
+  ],
+  "baselines": [
+   "Few-shot Direct GPT-J (no rationale)",
+   "Few-shot CoT GPT-J (with rationale)",
+   "GPT-J Direct Finetuned (fine-tuned to predict answer directly, 100% of data)",
+   "GPT-3 Direct Finetuned (73.0% on CQA, ~30x larger)",
+   "Few-shot CoT LaMDA 137B",
+   "STaR without rationalization (ablation)",
+   "Higher-temperature sampling as an alternative to rationalization (found counterproductive)"
+  ],
+  "metrics": [
+   "Task accuracy (arithmetic per-digit and overall, CQA dev accuracy, GSM8K test accuracy)",
+   "Fraction of training data covered / used",
+   "Human preference ranking of rationale quality (crowdworkers on Prolific)",
+   "Agreement between generated vs human calculator-step counts (GSM8K)",
+   "OOD accuracy on unseen digit lengths (9-10 digit addition) - no dedicated novelty/discovery metric"
+  ],
+  "limitations": "First iteration requires above-chance few-shot performance, so the base model must already possess reasoning ability (GPT-2 could not bootstrap even on arithmetic) \u2014 improvement is gated by pre-existing capability. High-chance settings (e.g. binary decisions) yield many correct answers with bad reasoning, confounding the filter (open problem: how to filter bad reasoning). Rationalization requires a way to inject a \"hint,\" which may be nontrivial in some domains. Higher-temperature sampling as an alternative degrades reasoning (scratchpads \"diverge into meaninglessness\"). No verification of rationale validity beyond final-answer correctness, so correct-answer-wrong-reasoning traces can leak in. No metric of conceptual novelty; limited compute prevented hyperparameter search. Rationale quality on CQA is only qualitatively/human-judged.",
+  "code": "Uses publicly available GPT-J 6B checkpoint and fine-tuning script from the GPT-J repository (ref [26]); no dedicated STaR code/data URL stated in the read pages.",
+  "evidence": "The paper's own framing and design place it on the elicitation side: it \"leverages the LLM's pre-existing reasoning ability\" and requires the base model to already have above-chance few-shot reasoning (GPT-2 fails to bootstrap; the initial model \"must be big enough to have some reasoning capabilities\"). No new external knowledge or verifier is added \u2014 only answer labels already present in standard datasets \u2014 so the loop redistributes probability mass toward reasoning paths the model can already sample, rather than acquiring new facts or inventing new mechanisms. The mathematical framing as a policy-gradient over latent rationales the model itself proposes reinforces that this is amplification of latent ability. Counter-evidence for pure elicitation: successful OOD generalization to 9-10 digit sums never seen in training, and occasional discovery of shorter-than-human solutions on GSM8K (skipping redundant steps). But no novelty/discovery metric is defined; evaluation is task accuracy plus human preference rankings of rationale quality. Human evaluators preferred STaR rationales over human-written ones 74% of the time, which the authors caution is about the difficulty of \"eliciting high-quality rationales,\" not human-level reasoning \u2014 again framing the contribution as elicitation.",
+  "quotes": [
+   "In this paper, we adopt a different approach: by leveraging the LLM's pre-existing reasoning ability, we iteratively bootstrap the ability to generate high-quality rationales.",
+   "In order for the first iteration of STaR to succeed, few-shot performance must be above chance, implying that the initial model must be big enough to have some reasoning capabilities. For instance we found that GPT-2 was not able to bootstrap from few-shot reasoning in even the arithmetic domain.",
+   "when evaluated on 9 and 10 digit examples, never seen during training, the model successfully solves many of these out-of-distribution problems."
+  ],
+  "contribution": "Introduces a self-improvement loop that turns ~10 few-shot rationale examples plus a large answer-labeled (but rationale-free) dataset into a large self-generated rationale training set, without needing to verify rationale correctness (correctness of the final answer is the filter). Adds \"rationalization\" (reasoning backward from the given correct answer) to obtain training signal on problems the model initially fails. Claimed as, to their knowledge, the first technique letting a pretrained LLM iteratively use its own language-modeling capacity to improve itself.",
+  "methodology": "Few-shot prompt the LLM (GPT-J, 6B) to produce a rationale then an answer; filter to rationales whose final answer equals ground truth; for failed problems, prompt again with the correct answer supplied as a hint (\"rationalization\") and keep those that now reach the correct answer (with the hint stripped from the stored prompt); fine-tune the original pretrained model on the union of correct + rationalized-correct rationales; repeat, regenerating data each outer loop from the improved model. The authors frame this as an approximation to an RL policy-gradient objective where the indicator 1(y_hat = y) reward implements the filtering step, with greedy (low-temperature) decoding to reduce variance."
+ },
+ {
+  "file": "2606.26294_RedQueenGodelMachine.pdf",
+  "title": "The Red Queen G\u00f6del Machine: Co-Evolving Agents and Their Evaluators",
+  "year": "2026",
+  "novelty_vs_elicitation": "mixed_or_neutral",
+  "one_line": "A recursive self-improvement framework (RQGM) in which learned evaluators co-evolve with the task agents they score, using \"controlled utility evolution\" (epoch-based frozen evaluators swapped at boundaries against a ground-truth anchor) to make non-stationary evaluation compatible with prior self-improvement guarantees.",
+  "key_results": "Coding (Polyglot): RQGM reaches 71.7% held-out pass rate vs prior SOTA HGM-H 69.9%, using 1.35x-1.72x fewer search tokens by adding a cheap agent-as-a-judge code reviewer; ~90% of accepted patches modify shared task-agent/infrastructure code benefiting both roles. Paper writing (Tab. 1): co-evolved writer raises mean reviewer-panel acceptance from HGM-H's 21.8% to 38.8% at matched compute (1.78x) and 40.5% for the best specialist (1.86x). Proof grading (Fig. 5): co-evolved RQGM grader reaches best IMO-GradingBench accuracy (~75-76%) at 3x lower search cost than HGM-H; grader ~9% higher ground-truth accuracy per abstract. Proof writing (Tab. 2): RQGM specialist prover Score 4.33 vs IMO25 4.07 and HGM-H 3.73, Pass@6 61.7% vs 55.0%/51.7%, but Pass@7 48.3% below static IMO25's 55.0% (wins by finding near-complete 6/7 proofs). Debiasing (Fig. 6): baseline HGM-H reviewer over-accepts AI papers at 1.42x-1.91x the human rate; adversarial RQGM reviewer accepts AI and human papers at similar rates while retaining ~80% ground-truth accuracy. Hybrid model (Fig. 7): routing task-agent calls through Nemotron 3 Ultra approaches GPT-5.5-only accuracy at ~13x lower price-equivalent search cost.",
+  "how_it_relates": "This paper is squarely about the \"moving-goalpost verification problem\": what happens when the evaluator itself is learned and evolves alongside the agent. It is highly relevant to the elicitation-vs-novelty question because it directly confronts reward hacking and the limits of static benchmarks, yet its own honest framing is that genuine improvement is anchored to (and therefore bounded by) fixed ground-truth data. The authors explicitly state that anchoring \"confines them to the anchor's own decision boundary\" and that going \"far beyond the benchmark must therefore come from the objectives layered on top of the ground-truth signal.\" Their one gesture toward creating something NOT specified by the benchmark is the adversarial reviewer that \"discovers a human-machine decision boundary the benchmark never specified\" \u2014 but this is a debiasing/calibration move, not invention of a genuinely new concept. All demonstrated gains (pass rate, acceptance rate, grading accuracy) are measured against pre-existing human/benchmark targets, and the mechanism is search over LLM-generated code/agent variants scored by LLM judges \u2014 i.e., better elicitation and orchestration of latent capability, not evidence of de-novo idea creation.",
+  "datasets": [
+   "Polyglot (aider coding benchmark, executable tests)",
+   "CRAVE (accepted/rejected pull-request dataset; anchor for the code reviewer)",
+   "APReS (agentic paper revision & evaluation system; accept/reject decisions; anchor for paper review; matching writer dataset of titles/abstracts constructed)",
+   "IMO-GradingBench (human grades for Olympiad proofs; anchor for proof grading)",
+   "SWE-bench (explicitly EXCLUDED due to long runtime)"
+  ],
+  "baselines": [
+   "HGM-H (Huxley-G\u00f6del Machine search substituted into HyperAgents, evaluators kept frozen with fixed external evaluator) \u2014 primary baseline in every domain",
+   "Sakana prompt reviewer (fixed external reviewer for paper writing)",
+   "ProofAutoGrader (fixed external grader for proof grading)",
+   "IMO25 prover (Huang & Yang human-engineered verification-and-refinement pipeline, gold-medal IMO 2025)",
+   "DGM-H (best published HyperAgents patches, proxy for Darwin-G\u00f6del-Machine-level performance, on paper reviewing and grading)"
+  ],
+  "metrics": [
+   "Held-out test pass rate (coding)",
+   "Blended search tokens = input + 5x output (efficiency / cost-to-quality)",
+   "epsilon-best-belief utility (epsilon=0.05; Beta-posterior lower bound)",
+   "Reviewer-panel acceptance rate",
+   "IMO-GradingBench grading accuracy and normalized grading MAE",
+   "Proof Score (mean 0-7), Pass@6, Pass@7",
+   "Spearman rho of post- vs pre-replacement archive rankings (curriculum / re-ranking measure)",
+   "AI-vs-human paper acceptance-rate ratio (self-preference bias / calibration)",
+   "NOTE: no explicit novelty or discovery metric is used"
+  ],
+  "limitations": "Authors call it a \"preliminary empirical investigation\" over \"short search horizons\" they intend to extend. Two explicit limitations: (1) evaluator quality is only as good as its anchor \u2014 a weak or biased ground-truth anchor yields uninformative evaluators; (2) theoretical guarantees are epoch-LOCAL only, covering improvement within an epoch, not globally across epochs (loosening convergence guarantees vs static evaluation). SWE-bench excluded for runtime. Proof domain gains only emerge at longer horizons and still lose on the strict Pass@7 metric. No novelty/discovery metric; all gains measured against fixed human/benchmark targets. Improvement \"far beyond the benchmark\" is deferred to future work.",
+  "code": "none found",
+  "evidence": "The paper demonstrates efficiency and quality gains via co-evolved evaluators, but every headline metric is agreement with a fixed external target (Polyglot test pass rate, IMO-GradingBench human grades, APReS accept/reject decisions, reviewer-panel acceptance). It offers no novelty/discovery metric and no claim of inventing a new concept; improvements are re-rankings of LLM-generated agent variants under progressively stricter LLM-as-judge criteria. The authors themselves cap the ceiling: evaluators are \"only as good as their anchor,\" anchoring \"confines them to the anchor's own decision boundary,\" and any capability \"beyond the reach of static benchmarks\" is deferred to future work with richer layered objectives. The single case going beyond the benchmark (the adversarial anti-self-preference reviewer) is calibration/debiasing rather than novel-idea generation. Hence the work is a better way to exploit/orchestrate latent LLM capability under moving evaluators, not demonstrated evidence of genuine novelty \u2014 but it is neutral/mixed because it explicitly identifies bootstrapping \"beyond the reach of static benchmarks\" as the goal and provides the epoch/anchor machinery as a step toward it.",
+  "quotes": [
+   "We believe the RQGM points toward a class of self-improving co-evolving systems in which agents and evaluators recursively bootstrap one another without further human intervention to reach capabilities beyond those of static evaluation ... at the cost of loosening convergence guarantees compared to static evaluation criteria.",
+   "The limit of this improvement is governed by the anchor. Anchoring every replacement to fixed ground truth keeps evaluators accurate but confines them to the anchor's own decision boundary. Improvement far beyond the benchmark must therefore come from the objectives layered on top of the ground-truth signal, with the anchor serving as a guardrail against drift.",
+   "The adversarial reviewer is the first such instance: it roughly maintains accuracy on the ground truth while the adversarial term discovers a human-machine decision boundary the benchmark never specified."
+  ],
+  "contribution": "Three stated contributions: (1) recursive self-improvement under NON-stationary utilities by treating the evaluation signal as part of the search; (2) \"controlled utility evolution\" that keeps prior G\u00f6del-Machine/HGM self-improvement guarantees per-epoch \u2014 search runs in fixed-evaluator epochs, and a challenger evaluator is promoted only when it raises an epsilon-best-belief score on a fixed ground-truth anchor; (3) empirical demonstrations that co-evolved learned evaluators add a cheap code-review signal (improving efficiency even where a verifier exists), enable generator search where no benchmark exists (paper/proof writing), and enable debiasing over-lenient evaluators via adversarial objectives at epoch boundaries.",
+  "methodology": "Builds on tree-search self-improvement (Darwin-G\u00f6del Machine, Huxley-G\u00f6del Machine / HGM, HyperAgents): an archive of agent nodes grown by a meta-agent that self-modifies code, with nodes selected via Thompson sampling over Clade MetaProductivity (CMP) and the final agent chosen by an epsilon-best-belief (Beta-posterior lower-bound) score. RQGM's four changes: each node is a multi-agent shared workspace (task-agent + evaluator roles, editable code) rather than a single agent; evaluators are themselves learned agentic processes; utilities may change at \"evolutionary epoch\" boundaries; and evaluators may be replaced there. Within an epoch the evaluator is frozen (stationary utility); at a checkpoint (exponentially spaced) a challenger evaluator replaces the incumbent only if it statistically outperforms it on a held-out ground-truth anchor, after which \"selective erasure\" discards only the utility records tied to the displaced evaluator. This makes each epoch a fixed-criterion search so HGM guarantees apply per-epoch; theory (Props 3-6) bounds re-evaluation cost to O(B)."
+ }
+]

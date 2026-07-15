@@ -1,0 +1,1 @@
+{"content": "Looking at each word:\n- lusu = moon\n- poza = (not in glossary)\n- kizo = river\n- tako = mountain\n\nSince \"poza\" is not in the glossary, I cannot provide a complete translation. However, following the instruction to output translations:\n\nmoon [unknown] river mountain", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 256, "completion_tokens": 72}

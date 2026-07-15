@@ -1,0 +1,31 @@
+\begin{table}[t]
+    \centering
+    \resizebox{\textwidth}{!}{%
+    \begin{tabular}{@{}llccccc@{}}
+        \toprule
+        \textbf{Model} & \textbf{Setting} & \textbf{Regime} & \textbf{no-skill} & \textbf{correct} & \textbf{self-gen} & \textbf{length-ctrl} \\
+        \midrule
+        \multirow{5}{*}{\claude}
+          & \arithbten   & elicitation      & 0.983 & 0.967 & 0.983 & 0.950 \\
+          & \vocabes     & elicitation      & 0.950 & \textbf{1.000} & \textbf{1.000} & 0.950 \\
+          & \arithbnine  & novelty-proc     & 0.850 & 0.883 & \textbf{0.250} & 0.850 \\
+          & \arithbeleven& novelty-proc     & 0.767 & 0.683 & 0.767 & 0.750 \\
+          & \vocabzeth   & novelty-info     & \textbf{0.000} & \textbf{1.000} & \textbf{0.000} & \textbf{0.000} \\
+        \midrule
+        \multirow{5}{*}{\gpt}
+          & \arithbten   & elicitation      & 0.417 & \textbf{0.700} & 0.367 & 0.250 \\
+          & \vocabes     & elicitation      & 0.917 & \textbf{1.000} & 0.850 & 0.917 \\
+          & \arithbnine  & novelty-proc     & 0.000 & 0.000 & 0.000 & 0.000 \\
+          & \arithbeleven& novelty-proc     & 0.017 & 0.000 & 0.000 & 0.017 \\
+          & \vocabzeth   & novelty-info     & \textbf{0.000} & \textbf{1.000} & \textbf{0.000} & \textbf{0.000} \\
+        \bottomrule
+    \end{tabular}
+    }
+    \caption{\textbf{Exp~1: accuracy by condition} ($N=60$ held-out items; bootstrap 95\% CIs in
+    the text). The decisive row is \vocabzeth on both models: the correct skill lifts accuracy
+    $0.00\to1.00$ while the self-generated skill and length-matched control stay at $0.00$ ---
+    genuine, un-self-generatable new knowledge. In the elicitation settings a length-matched
+    irrelevant memo matches the ``skill.'' The self-generated \arithbnine skill \emph{hurts}
+    \claude ($0.85\to0.25$). Bold marks the informative contrasts.}
+    \label{tab:exp1_main}
+\end{table}

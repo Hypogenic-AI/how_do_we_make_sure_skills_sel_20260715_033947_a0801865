@@ -1,0 +1,1 @@
+{"content": "I need to calculate 308 * 998.\n\n308 * 998 = 308 * (1000 - 2)\n         = 308 * 1000 - 308 * 2\n         = 308,000 - 616\n         = 307,384\n\n307384", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 73}

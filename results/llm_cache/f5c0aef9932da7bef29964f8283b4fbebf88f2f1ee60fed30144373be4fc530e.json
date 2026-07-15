@@ -1,0 +1,1 @@
+{"content": "Looking at each word:\n- lusu = moon\n- muso = sea\n- nige = stone (note: this appears to be a variant, checking glossary shows \"niga = stone\" and \"nuge = stone\")\n- tako = mountain\n\nmoon sea stone mountain", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 256, "completion_tokens": 63}

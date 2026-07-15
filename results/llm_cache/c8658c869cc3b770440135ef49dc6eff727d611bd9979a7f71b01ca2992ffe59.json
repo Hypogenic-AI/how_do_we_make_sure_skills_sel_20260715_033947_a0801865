@@ -1,0 +1,1 @@
+{"content": "I need to solve 351 * 162.\n\n351 * 162\n= 351 * (160 + 2)\n= 351 * 160 + 351 * 2\n= 351 * 160 + 702\n= 56,160 + 702\n= 56,862\n\n56862", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 80}

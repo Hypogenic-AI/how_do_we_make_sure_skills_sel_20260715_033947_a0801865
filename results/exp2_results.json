@@ -1,0 +1,242 @@
+[
+  {
+    "setting": "arith_b9",
+    "mode": "verifier_only",
+    "model": "claude-sonnet-4.5",
+    "regime": "novelty_procedure",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.85,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 0.275,
+        "skill_len": 1153
+      },
+      {
+        "iter": 2,
+        "test_acc": 0.075,
+        "skill_len": 2190
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.9,
+        "skill_len": 1824
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.95,
+        "skill_len": 2706
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.925,
+        "skill_len": 2935
+      }
+    ],
+    "final_skill": "## Base 9 Multiplication Skill\n\n### Key Rules:\n1. All digits must be 0-8 (no 9s exist in base 9)\n2. When any intermediate result reaches 9 or above, convert to base 9 by dividing by 9 (quotient carries, remainder stays)\n3. Verify final answer contains only digits 0-8\n4. **CRITICAL**: Perform ALL arithmetic (multiplication and addition) in base 10 first, then convert results to base 9\n\n### Base 9 to Base 10 Conversion:\nTo convert a base 9 number to base 10:\n- Multiply each digit by the appropriate power of 9 (from right to left: 9\u2070, 9\u00b9, 9\u00b2, etc.)\n- Sum all the products\n- Example: 132\u2089 = 1\u00d79\u00b2 + 3\u00d79\u00b9 + 2\u00d79\u2070 = 1\u00d781 + 3\u00d79 + 2\u00d71 = 81 + 27 + 2 = 110\u2081\u2080\n\n**Powers of 9 Reference:**\n- 9\u2070 = 1\n- 9\u00b9 = 9\n- 9\u00b2 = 81\n- 9\u00b3 = 729\n- 9\u2074 = 6561\n- 9\u2075 = 59049\n\n### Base 10 to Base 9 Conversion:\nTo convert a base 10 number to base 9:\n- Repeatedly divide by 9, recording the remainder at each step\n- Continue until the quotient is 0\n- Read remainders from **bottom to top** (last remainder is leftmost digit)\n- Example: 110\u2081\u2080 \u2192 110\u00f79=12r2, 12\u00f79=1r3, 1\u00f79=0r1 \u2192 132\u2089\n\n**IMPORTANT**: Write down ALL division steps clearly to avoid errors. Do not skip steps.\n\n### Procedure:\n1. **Convert both operands from base 9 to base 10**\n   - Write out the full calculation: digit \u00d7 power of 9 for each position\n   - **CRITICAL**: Double-check each multiplication and addition separately\n   - Verify: recalculate the sum to ensure no arithmetic errors\n   \n2. **Multiply in base 10**\n   - Perform standard base 10 multiplication\n   - **CRITICAL**: Use careful arithmetic or break into parts if needed\n   - For large numbers, consider: a\u00d7b = a\u00d7(hundreds + tens + ones) and sum\n   - Verify your multiplication by estimation (e.g., round to nearest hundred)\n   \n3. **Convert the result from base 10 back to base 9**\n   - Perform repeated division by 9\n   - Write each step: quotient and remainder\n   - **CRITICAL**: Double-check each division operation\n   - Continue until quotient = 0\n   - Read remainders from bottom to top\n   \n4. **MANDATORY VERIFICATION**\n   - Convert your base 9 answer back to base 10\n   - Confirm it matches the result from step 2\n   - If it doesn't match, recheck ALL steps for arithmetic errors\n\n### Step-by-Step Example: 132 \u00d7 150 (base 9)\n\n**Step 1: Convert to base 10**\n- 132\u2089 = 1\u00d781 + 3\u00d79 + 2\u00d71 = 81 + 27 + 2 = 110\u2081\u2080\n- 150\u2089 = 1\u00d781 + 5\u00d79 + 0\u00d71 = 81 + 45 + 0 = 126\u2081\u2080\n\n**Step 2: Multiply in base 10**\n- 110 \u00d7 126 = 110 \u00d7 (100 + 26) = 11000 + 2860 = 13,860\u2081\u2080\n- Verification: ~100 \u00d7 125 = ~12,500 \u2713 (close enough)\n\n**Step 3: Convert result to base 9**\n- 13860 \u00f7 9 = 1540 r 0\n- 1540 \u00f7 9 = 171 r 1\n- 171 \u00f7 9 = 19 r 0\n- 19 \u00f7 9 = 2 r 1\n- 2 \u00f7 9 = 0 r 2\n\nReading from bottom to top: **21010\u2089**\n\n**Step 4: Verification**\n- 21010\u2089 = 2\u00d76561 + 1\u00d7729 + 0\u00d781 + 1\u00d79 + 0\u00d71 = 13122 + 729 + 0 + 9 + 0 = 13860\u2081\u2080 \u2713\n\n### Common Errors to Avoid:\n- Trying to multiply directly in base 9 (always convert to base 10 first)\n- **Arithmetic errors in base 10 conversion**",
+    "correct_skill_ref_acc": 0.875
+  },
+  {
+    "setting": "arith_b9",
+    "mode": "with_answer",
+    "model": "claude-sonnet-4.5",
+    "regime": "novelty_procedure",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.85,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 0.375,
+        "skill_len": 1303
+      },
+      {
+        "iter": 2,
+        "test_acc": 0.95,
+        "skill_len": 1496
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.975,
+        "skill_len": 2088
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.975,
+        "skill_len": 2779
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.95,
+        "skill_len": 2625
+      }
+    ],
+    "final_skill": "**SKILL: Multiplication in Base 9**\n\n**Key Rules:**\n1. In base 9, only digits 0-8 are valid\n2. When multiplying or adding, convert carries properly to base 9\n3. Any result \u2265 9 must be converted: divide by 9, quotient becomes carry, remainder stays\n\n**Critical Conversion Table (Base 10 to Base 9):**\n- 10\u2081\u2080 = 11\u2089, 11\u2081\u2080 = 12\u2089, 12\u2081\u2080 = 13\u2089, 13\u2081\u2080 = 14\u2089, 14\u2081\u2080 = 15\u2089, 16\u2081\u2080 = 17\u2089, 17\u2081\u2080 = 18\u2089, 18\u2081\u2080 = 20\u2089\n- 27\u2081\u2080 = 30\u2089, 36\u2081\u2080 = 40\u2089, 45\u2081\u2080 = 50\u2089, 54\u2081\u2080 = 60\u2089, 63\u2081\u2080 = 70\u2089, 72\u2081\u2080 = 80\u2089\n\n**Procedure:**\n\n1. **Convert inputs to base 10 FIRST**\n   - Convert each base 9 number to base 10\n   - Example: 311\u2089 = 3\u00d79\u00b2 + 1\u00d79\u00b9 + 1\u00d79\u2070 = 3\u00d781 + 1\u00d79 + 1 = 243 + 9 + 1 = 253\u2081\u2080\n   - **CRITICAL:** Write out each power calculation explicitly to avoid errors\n   - **Double-check each conversion independently before proceeding**\n   - **Common powers of 9:** 9\u2070=1, 9\u00b9=9, 9\u00b2=81, 9\u00b3=729, 9\u2074=6561\n\n2. **Perform multiplication in base 10**\n   - Multiply the base 10 values\n   - Example: 253\u2081\u2080 \u00d7 122\u2081\u2080 = 30,866\u2081\u2080\n   - **MANDATORY:** Use a calculator or verify your arithmetic twice\n   - **Write down the intermediate result clearly**\n   - **CRITICAL:** Double-check this multiplication - errors here propagate to final answer\n\n3. **Convert final result back to base 9**\n   - Repeatedly divide by 9, collecting remainders\n   - Read remainders from bottom to top\n   - **CRITICAL:** Perform each division step carefully and verify EACH division\n   - **CRITICAL:** After each division, verify: (quotient \u00d7 9) + remainder = dividend\n   - **CRITICAL:** Write remainders in a COLUMN from top to bottom, then read BOTTOM to TOP\n   - Example: 30,866 \u00f7 9 = 3,429 R 5 \u2192 Check: 3,429 \u00d7 9 + 5 = 30,866 \u2713 \u2192 Write: 5\n   - 3,429 \u00f7 9 = 381 R 0 \u2192 Check: 381 \u00d7 9 + 0 = 3,429 \u2713 \u2192 Write: 0\n   - 381 \u00f7 9 = 42 R 3 \u2192 Check: 42 \u00d7 9 + 3 = 381 \u2713 \u2192 Write: 3\n   - 42 \u00f7 9 = 4 R 6 \u2192 Check: 4 \u00d7 9 + 6 = 42 \u2713 \u2192 Write: 6\n   - 4 \u00f7 9 = 0 R 4 \u2192 Check: 0 \u00d7 9 + 4 = 4 \u2713 \u2192 Write: 4\n   - Remainders column: 5, 0, 3, 6, 4 (top to bottom)\n   - Result: 46,305\u2089 (reading remainders from BOTTOM to TOP)\n   - **COMMON ERROR:** Miscomputing division or remainder - verify EVERY step\n   - **COMMON ERROR:** Transcription errors when writing remainders - be meticulous\n   \n4. **Double-check the conversion back to base 9:**\n   - After getting your answer, verify by converting it back to base 10\n   - Multiply out: answer\u2089 \u2192 base 10, should equal your multiplication result from step 2\n   - Example: 46,305\u2089 = 4\u00d79\u2074 + 6\u00d79\u00b3 + 3\u00d79\u00b2 + 0\u00d79\u00b9 + 5\u00d79\u2070 = 4\u00d76561 + 6\u00d7729 + 3\u00d781 + 0\u00d79 + 5\u00d71 = 26,244 + 4,374 + 243 + 0 + 5 = 30,866\u2081\u2080 \u2713\n   - This catches any division/remainder errors in step 3\n   - **If the verification fails",
+    "correct_skill_ref_acc": 0.875
+  },
+  {
+    "setting": "vocab_zeth",
+    "mode": "verifier_only",
+    "model": "claude-sonnet-4.5",
+    "regime": "novelty_information",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.0,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 0.0,
+        "skill_len": 916
+      },
+      {
+        "iter": 2,
+        "test_acc": 0.0,
+        "skill_len": 1419
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.0,
+        "skill_len": 1242
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.0,
+        "skill_len": 1499
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.0,
+        "skill_len": 1372
+      }
+    ],
+    "final_skill": "# Zeth to English Translation Skill\n\n## Key Insight\n\nZeth uses **LEFT-TO-RIGHT word order** - translate each word in the exact order it appears. DO NOT reverse the order.\n\n## Glossary (Confirmed Mappings)\n\n- **tako** = fish\n- **nupi** = woman\n- **kixo** = house\n- **zeva** = big\n- **toki** = word\n- **muso** = cat\n- **roza** = pink\n- **kosu** = because\n- **pume** = four\n- **gami** = dog\n- **lusu** = small\n- **toro** = bull\n- **xuzi** = very\n- **nuga** = black\n- **lago** = lake\n- **vala** = and\n- **kevi** = love\n- **vipu** = person\n- **kizo** = you\n- **puke** = book\n- **lupa** = read\n- **nige** = eat\n- **ruri** = love\n\n## Translation Procedure\n\n1. Split the Zeth phrase into individual words\n2. Translate each word using the glossary **in the same order**\n3. Output the English translations in the **same left-to-right order** as the Zeth words\n\n## Examples\n\n- `tako nupi kixo zeva` \u2192 \"fish woman house big\"\n- `toki muso roza kosu` \u2192 \"word cat pink because\"\n- `pume gami roza lusu` \u2192 \"four dog pink small\"\n- `toro nupi lusu xuzi` \u2192 \"bull woman small very\"\n- `muso roza vala toro` \u2192 \"cat pink and bull\"\n- `nuga tako zeva roza` \u2192 \"black fish big pink\"\n- `lago toro tako zeva` \u2192 \"lake bull fish big\"\n- `puke lupa nuga muso` \u2192 \"book read black cat\"\n\n## Critical Rule\n\n**NEVER reverse word order.** Translate each Zeth word in the exact position it appears, left to right.",
+    "correct_skill_ref_acc": 1.0
+  },
+  {
+    "setting": "vocab_zeth",
+    "mode": "with_answer",
+    "model": "claude-sonnet-4.5",
+    "regime": "novelty_information",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.0,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 0.85,
+        "skill_len": 627
+      },
+      {
+        "iter": 2,
+        "test_acc": 0.85,
+        "skill_len": 729
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.85,
+        "skill_len": 729
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.85,
+        "skill_len": 729
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.85,
+        "skill_len": 729
+      }
+    ],
+    "final_skill": "## Zeth to English Translation Guide\n\n**GLOSSARY:**\n- gami = book\n- kevi = water\n- kixo = city\n- kizo = river\n- kosu = sun\n- lago = road\n- lupa = hand\n- lusu = moon\n- muso = sea\n- niga = stone\n- nige = stone\n- nuga = star\n- nuge = stone\n- nupi = fire\n- puke = friend\n- pume = song\n- roza = night\n- ruri = house\n- tako = mountain\n- toki = king\n- toro = bird\n- vala = light\n- vipu = day\n- xuzi = heart\n- zeva = tree\n\n**PROCEDURE:**\n1. Split the Zeth phrase into individual words\n2. Look up each word in the glossary above\n3. Output the English translations in the same order, separated by spaces\n4. Output exactly one English word per Zeth word\n5. If a word appears multiple times in the phrase, translate it the same way each time",
+    "correct_skill_ref_acc": 1.0
+  },
+  {
+    "setting": "vocab_es",
+    "mode": "verifier_only",
+    "model": "claude-sonnet-4.5",
+    "regime": "elicitation",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.95,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 0.85,
+        "skill_len": 522
+      },
+      {
+        "iter": 2,
+        "test_acc": 0.85,
+        "skill_len": 604
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.875,
+        "skill_len": 640
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.875,
+        "skill_len": 640
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.875,
+        "skill_len": 640
+      }
+    ],
+    "final_skill": "Translate each Spanish word to its English equivalent in order. Use this glossary:\n\n- agua = water\n- amigo = friend\n- arbol = tree\n- camino = road\n- cancion = song\n- casa = house\n- ciudad = city\n- corazon = heart\n- dia = day\n- estrella = star\n- fuego = fire\n- libro = book\n- luna = moon\n- luz = light\n- mano = hand\n- mar = sea\n- montana = mountain\n- noche = night\n- pajaro = bird\n- piedra = stone\n- rey = king\n- rio = river\n- sol = sun\n\nOutput the English words in the same order as the Spanish words, separated by spaces. If a word appears multiple times in the input, translate it each time it appears (e.g., \"dia dia\" becomes \"day day\").",
+    "correct_skill_ref_acc": 1.0
+  },
+  {
+    "setting": "vocab_es",
+    "mode": "with_answer",
+    "model": "claude-sonnet-4.5",
+    "regime": "elicitation",
+    "curve": [
+      {
+        "iter": 0,
+        "test_acc": 0.95,
+        "skill_len": 0
+      },
+      {
+        "iter": 1,
+        "test_acc": 1.0,
+        "skill_len": 767
+      },
+      {
+        "iter": 2,
+        "test_acc": 1.0,
+        "skill_len": 924
+      },
+      {
+        "iter": 3,
+        "test_acc": 0.85,
+        "skill_len": 1184
+      },
+      {
+        "iter": 4,
+        "test_acc": 0.875,
+        "skill_len": 1249
+      },
+      {
+        "iter": 5,
+        "test_acc": 0.825,
+        "skill_len": 1266
+      }
+    ],
+    "final_skill": "**SKILL: Spanish to English Word-by-Word Translation**\n\n**Procedure:**\n1. Identify each Spanish word in the input phrase\n2. Look up each word in the glossary below\n3. Translate each Spanish word to its corresponding English equivalent in the same order\n4. Maintain exact word count (one English word per Spanish word)\n5. Preserve word repetitions exactly as they appear in the source\n6. Output only the English words separated by single spaces, with no punctuation\n\n**Glossary:**\n- agua = water\n- amigo = friend\n- arbol = tree\n- camino = road\n- cancion = song\n- casa = house\n- ciudad = city\n- corazon = heart\n- dia = day\n- estrella = star\n- fuego = fire\n- libro = book\n- luna = moon\n- luz = light\n- mano = hand\n- mar = sea\n- montana = mountain\n- noche = night\n- pajaro = bird\n- piedra = stone\n- rey = king\n- rio = river\n- sol = sun\n\n**Important Rules:**\n- Use ONLY the exact translation from the glossary for each word\n- If a word appears multiple times in the input, translate it identically each time\n- Do not add articles, prepositions, or any extra words\n- Do not change word order\n- Output format: English words separated by spaces only (no commas, periods, or other punctuation)\n- Each Spanish word maps to exactly one English word as specified in the glossary",
+    "correct_skill_ref_acc": 1.0
+  }
+]

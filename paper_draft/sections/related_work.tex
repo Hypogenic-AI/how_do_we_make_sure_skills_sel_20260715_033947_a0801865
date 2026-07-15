@@ -1,0 +1,48 @@
+\section{Related Work}
+\label{sec:related}
+
+\para{Self-evolving agents and skill libraries.} A growing literature builds agents that
+accumulate reusable procedures or rewrite their own prompts and code:
+Voyager~\citep{voyager} maintains an executable skill library, Promptbreeder~\citep{promptbreeder}
+evolves task- and mutation-prompts, the Darwin G\"odel Machine~\citep{dgm} rewrites its own
+code, and the self-evolving-agents survey~\citep{selfevolvesurvey} formalizes the loop of
+inputs, agent, environment, and optimizer. The G\"odel Machine~\citep{godelmachine} is the
+theoretical ideal these approximate. A recurring observation, made by Voyager's own authors,
+is that such systems harness knowledge already encapsulated in the pretrained model and
+perform an in-context form of novelty search. Unlike this line of work, we do not propose a
+new self-evolving system; we build a substrate and a discriminator that measure whether such
+systems create knowledge or re-elicit it.
+
+\para{Controlled skill ablations.} The closest works measure task performance with and without
+a skill while holding the base model fixed. SkillsBench~\citep{skillsbench} reports that
+human-curated skills raise pass rate by $+16.6$ points across 18 agent$\times$model
+configurations, whereas agent self-generated skills fall $8$--$12$ points \emph{below}
+baseline. A data-science skill ablation~\citep{dsskills} finds the full skill condition
+statistically indistinguishable from a token-matched irrelevant control (all $p\geq0.396$), and
+Library Drift~\citep{librarydrift} shows self-curated skill banks silently degrade without
+outcome-driven governance, with a no-injection floor of $+0.002$. Meta-agent
+studies~\citep{metaagents} similarly find ``evolved'' designs mostly reshuffle known building
+blocks. Building on these, we add the missing control: an explicit test of whether the model
+could self-generate the skill, and a substrate where the correct answer is known.
+
+\para{Elicitation versus new capability.} A parallel literature questions whether apparent
+gains reflect new capability. Reasoning-or-Reciting~\citep{reasoningreciting} shows that on
+counterfactual task variants (\eg base-9 arithmetic) performance collapses while comprehension
+stays high, indicating recitation rather than reasoning. The emergent-abilities-as-mirage
+critique~\citep{mirage} warns that sharp ``new'' abilities are often metric artifacts.
+Crucially, LLMs-cannot-self-correct-yet~\citep{cannotselfcorrect} shows that without an
+external signal, self-refinement does not add correctness and often degrades it, and
+STaR~\citep{star} works only because an external correctness filter gates self-generated
+rationales. Our verifier-only versus with-answer self-evolution experiment directly
+instantiates this distinction on our substrate.
+
+\para{Novelty measurement and verifiable discovery.} Idea-novelty studies find LLMs can
+produce novel-\emph{sounding} ideas~\citep{novelideas} whose novelty scales with retrieved
+external knowledge~\citep{nova}, but HindSight~\citep{hindsight} shows judged novelty
+anti-correlates with real impact --- motivating our deterministic verifiers and our refusal to
+use LLM-as-judge for primary signals. The one clear case of verifiable novelty,
+AlphaEvolve~\citep{alphaevolve}, obtains genuinely new mathematical results from evolutionary
+search plus an external ground-truth evaluator, not from the model introspecting; the Red Queen
+G\"odel Machine~\citep{redqueen} warns that learning the evaluator invites verifier-hacking.
+Our results reproduce and mechanize this pattern: genuine novelty enters a skill only from an
+external source, and self-evolution alone cannot supply it.

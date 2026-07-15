@@ -1,0 +1,1 @@
+{"content": "**Skill for Solving Base 11 Arithmetic Problems:**\n\n1. **Convert** each base 11 number to decimal (base 10).\n2. **Perform** the required arithmetic operation (e.g., multiplication) in decimal.\n3. **Convert** the decimal result back to base 11.\n4. **Write** the final answer in base 11.", "model": "openai/gpt-4.1", "prompt_tokens": 104, "completion_tokens": 75}

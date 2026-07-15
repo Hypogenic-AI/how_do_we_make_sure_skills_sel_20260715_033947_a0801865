@@ -1,0 +1,26 @@
+[
+  {
+    "kind": "zeth",
+    "results": {
+      "base_no_skill": 0.0,
+      "base_in_context": 0.95,
+      "ft_doc": 0.0,
+      "ft_examples": 1.0
+    },
+    "n_ft": 220,
+    "n_test": 60,
+    "model": "Qwen/Qwen2.5-7B-Instruct"
+  },
+  {
+    "kind": "arith_b9",
+    "results": {
+      "base_no_skill": 0.0,
+      "base_in_context": 0.0,
+      "ft_doc": 0.0,
+      "ft_examples": 0.0
+    },
+    "n_ft": 220,
+    "n_test": 60,
+    "model": "Qwen/Qwen2.5-7B-Instruct"
+  }
+]

@@ -1,0 +1,1 @@
+{"content": "I need to calculate 308 \u00d7 998.\n\nI'll use the alternative method since 998 = 1000 - 2:\n\n308 \u00d7 998 = 308 \u00d7 (1000 - 2)\n         = 308 \u00d7 1000 - 308 \u00d7 2\n         = 308,000 - 616\n         = 307,384\n\n307384", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 259, "completion_tokens": 93}

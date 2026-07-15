@@ -1,0 +1,1 @@
+{"content": "I need to calculate 509 * 399.\n\n509 * 399 = 509 * (400 - 1)\n         = 509 * 400 - 509 * 1\n         = 203,600 - 509\n         = 203,091\n\n203091", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 71}

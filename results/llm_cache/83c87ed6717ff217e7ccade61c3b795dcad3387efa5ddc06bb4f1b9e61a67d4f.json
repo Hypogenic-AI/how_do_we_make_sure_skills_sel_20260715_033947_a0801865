@@ -1,0 +1,1 @@
+{"content": "I need to calculate 784 \u00d7 786.\n\n784 \u00d7 786 = 784 \u00d7 (800 - 14)\n= 784 \u00d7 800 - 784 \u00d7 14\n= 627,200 - 10,976\n= 616,224\n\n616224", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 70}

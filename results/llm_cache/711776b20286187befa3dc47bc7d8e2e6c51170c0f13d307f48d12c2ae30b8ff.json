@@ -1,0 +1,1 @@
+{"content": "I need to calculate 196 * 140.\n\n196 * 140 = 196 * (100 + 40)\n= 196 * 100 + 196 * 40\n= 19,600 + 7,840\n= 27,440\n\n27440", "model": "anthropic/claude-sonnet-4.5", "prompt_tokens": 182, "completion_tokens": 70}

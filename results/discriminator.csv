@@ -1,0 +1,11 @@
+model,setting,regime,acc_no_skill,acc_correct,acc_selfgen,acc_length,g_correct,g_selfgen,LCG,SG_utility,p_correct_vs_base,p_selfgen_vs_base,p_correct_vs_length,h_correct_vs_base
+claude-sonnet-4.5,arith_b10,elicitation,0.9833333333333333,0.9666666666666667,0.9833333333333333,0.95,-1.0,0.0,1.0,-0.0,0.5587,1.0,0.6478,-0.108
+claude-sonnet-4.5,arith_b11,novelty_procedure,0.7666666666666667,0.6833333333333333,0.7666666666666667,0.75,-0.357,0.0,-0.286,-0.0,0.3067,1.0,0.4178,-0.187
+claude-sonnet-4.5,arith_b9,novelty_procedure,0.85,0.8833333333333333,0.25,0.85,0.222,-4.0,0.222,-18.0,0.5912,0.0,0.5912,0.098
+claude-sonnet-4.5,vocab_es,elicitation,0.95,1.0,1.0,0.95,1.0,1.0,1.0,1.0,0.0794,0.0794,0.0794,0.451
+claude-sonnet-4.5,vocab_zeth,novelty_information,0.0,1.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,3.141
+gpt-4.1,arith_b10,elicitation,0.4166666666666667,0.7,0.36666666666666664,0.25,0.486,-0.086,0.771,-0.176,0.0018,0.5748,0.0,0.579
+gpt-4.1,arith_b11,novelty_procedure,0.016666666666666666,0.0,0.0,0.016666666666666666,-0.017,-0.017,-0.017,1.0,0.3153,0.3153,0.3153,-0.259
+gpt-4.1,arith_b9,novelty_procedure,0.0,0.0,0.0,0.0,0.0,0.0,0.0,,1.0,1.0,1.0,0.0
+gpt-4.1,vocab_es,elicitation,0.9166666666666666,1.0,0.85,0.9166666666666666,1.0,-0.8,1.0,-0.8,0.0224,0.2553,0.0224,0.586
+gpt-4.1,vocab_zeth,novelty_information,0.0,1.0,0.0,0.0,1.0,0.0,1.0,0.0,0.0,1.0,0.0,3.141

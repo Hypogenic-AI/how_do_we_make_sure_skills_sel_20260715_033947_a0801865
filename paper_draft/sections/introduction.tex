@@ -1,0 +1,79 @@
+\section{Introduction}
+\label{sec:intro}
+
+Self-evolving agents and reusable ``Skills'' are increasingly marketed as engines of
+discovery. Systems such as Voyager~\citep{voyager}, Promptbreeder~\citep{promptbreeder}, the
+Darwin G\"odel Machine~\citep{dgm}, and the SKILL.md agent-skills abstraction accumulate
+procedural knowledge or rewrite their own prompts, and the self-evolving-agents
+survey~\citep{selfevolvesurvey} frames this as a paradigm shift from offline pretraining
+toward online, lifelong self-modification. Yet almost all of these methods are
+\emph{black-box wrappers around a frozen base model}: they add no weights and no training
+signal beyond what a verifier or environment already provides. This raises a sharp empirical
+question that determines whether ``self-improving AI'' is a path to new science or a plateau
+at the base model's latent ceiling.
+
+{\bf When a skill helps, why does it help?} An agent that fails a hard problem and then
+succeeds after being given (or self-developing) a skill may have (a) genuinely \emph{acquired}
+a new procedure it did not possess --- the ``invented the attention mechanism'' case --- or
+(b) merely \emph{recalled} a latent, pretraining-adjacent concept via better prompting. These
+are the difference between knowledge creation and prompt optimization, and they call for
+opposite conclusions about the field. But standard evaluation cannot separate them. Most
+training samples are seen once, so there is no over-fitting fingerprint to detect, and
+subjective novelty judgments are actively misleading: HindSight~\citep{hindsight} shows that
+LLM and human novelty ratings \emph{anti-correlate} ($\rho=-0.29$) with real downstream impact.
+
+{\bf The gap.} Every existing skill ablation measures only pass-rate \emph{with} versus
+\emph{without} a skill. SkillsBench~\citep{skillsbench} shows human-curated skills add
+$+16.6$ points while agent self-generated skills fall \emph{below} baseline, and a clean
+data-science ablation~\citep{dsskills} finds LLM-generated skills statistically
+indistinguishable from a token-matched irrelevant control. These are valuable, but none
+isolates \emph{whether the model could have produced the skill itself}, and none has a
+substrate where ``novel versus latent'' is ground-truth-known. Without such a substrate,
+novelty claims rest on judgments that we already know are untrustworthy.
+
+{\bf Our approach.} We build a controlled substrate where the ground-truth answer to ``is this
+skill novel or latent?'' is \emph{known by construction}, and we define the
+Elicitation--Novelty Discriminator (\END), a small set of measurable quantities that classify
+\emph{why} a skill helped. The key construction is an invented-language glossary (``\zeth''):
+its 24 word mappings are generated from a fixed random seed at run time, so the mapping
+provably cannot appear in any pretraining corpus. It is the cleanest lab analog of ``a new
+theory the model has not memorized,'' yet its answers are exactly checkable by a deterministic
+verifier --- no LLM-as-judge. Alongside it we use counterfactual base-$b$
+arithmetic~\citep{reasoningreciting} to probe latent-but-unreliable procedures. The \END
+asks three questions of any helpful skill: can the base model \emph{self-generate} a working
+version (\SG)? Does the skill beat a \emph{length-matched} irrelevant control (\LCG)? And can a
+verifier-only \emph{self-evolution} loop reach it without ground-truth answers?
+
+{\bf What we find.} Across two frontier models (\claude, \gpt) and 3{,}000+ deterministic API
+evaluations, a skill delivers a large, content-specific, length-controlled gain in exactly one
+place: where the required knowledge is genuinely absent. On \zeth the correct skill lifts
+accuracy from $0.00$ to $1.00$ on both models ($p<10^{-4}$, Cohen's $h=3.14$), while the
+model's own self-generated skill and a length-matched control both stay at $0.00$. A
+five-step self-evolution loop never moves \zeth off $0.00$ under verifier-only feedback across
+all five iterations, but climbs to $0.85$ the instant it receives ground-truth answers ---
+precisely the AlphaEvolve~\citep{alphaevolve} lesson that the model proposes while an external
+verifier discovers. Self-generated skills can even \emph{harm}: on base-9 multiplication the
+model's own skill dropped accuracy from $0.85$ to $0.25$. Finally, we stress-test the popular
+``fine-tune the skill back into the weights'' probe and show it is real but method-dependent:
+new knowledge internalizes and generalizes to held-out phrases ($1.00$) only via
+example-distillation, while fine-tuning on the skill \emph{document} leaves accuracy at $0.00$.
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,itemsep=0pt,topsep=0pt]
+    \item We propose a controlled substrate in which ``novel versus latent'' is known by
+    construction, built around a randomly generated invented-language glossary whose answers
+    are deterministically verifiable, removing the reliance on subjective novelty judgments.
+    \item We introduce the Elicitation--Novelty Discriminator (\END): self-generation utility,
+    length-controlled gain, and verifier-only self-evolution, which together classify
+    \emph{why} a skill helps rather than only \emph{whether} it helps.
+    \item We validate the discriminator on two frontier models over 3{,}000+ deterministic
+    evaluations, showing a sharp and consistent signature that separates the three regimes and
+    mechanizes four prior findings on a single substrate.
+    \item We complement the API study with a GPU internalization probe on \qwen that shows the
+    ``fine-tune it back'' test cannot by itself classify a skill, since its verdict flips with
+    the fine-tuning recipe.
+\end{itemize}
+
+We review related work in \secref{sec:related}, describe the substrate and discriminator in
+\secref{sec:method}, present results in \secref{sec:results}, discuss implications and
+limitations in \secref{sec:discussion}, and conclude in \secref{sec:conclusion}.
