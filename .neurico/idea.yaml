@@ -1,0 +1,54 @@
+idea:
+  title: How do we make sure Skills/Self-Evolving is creating something new rather
+    than finding a better way to exploit what LLMs have already learned?
+  domain: artificial_intelligence
+  hypothesis: 'The core motivation is to confirm whether existing self-evolving algorithms
+    are leading LLMs to create new ideas (e.g., examples of creating new ideas include
+    developing the Theory of Relativity or Attention), or whether we are just seeking
+    some new prompt optimization solution.
+
+    The background is a scenario in which we have an LLM and use it as an agent to
+    solve complex math, coding, or daily work tasks. Claude and many papers propose
+    skills, either through human crafting or LLM evolution. Wi...'
+  background:
+    description: 'The core motivation is to confirm whether existing self-evolving
+      algorithms are leading LLMs to create new ideas (e.g., examples of creating
+      new ideas include developing the Theory of Relativity or Attention), or whether
+      we are just seeking some new prompt optimization solution.
+
+      The background is a scenario in which we have an LLM and use it as an agent
+      to solve complex math, coding, or daily work tasks. Claude and many papers propose
+      skills, either through human crafting or LLM evolution. With skills added to
+      the prompt, LLM-based agents can significantly improve their performance on
+      solving tasks.
+
+      On one hand, it is non-trivial to verify whether the LLM has seen the data before.
+      As we know, during LLM training, most data samples are only used once. Hence,
+      an LLM is unlikely to overfit on most samples. Simply using previous memorization
+      techniques cannot verify whether the LLM has seen the sample or not. For example,
+      an LLM on the first try cannot solve an IMO math problem. We then give it, or
+      let it develop by itself, a skill named "xxx geometry theory," and then it solves
+      the question. However, it is possible that, in the pre-training data, there
+      were some concepts similar to "xxx geometry theory," and we just found a way
+      to optimize the way letting LLM recall it.
+
+      On the other hand, the LLM may really create some new ideas. For example, it
+      is also possible that "xxx geometry theory" is a completely new theory, but
+      it may be based on some existing theories. For example, the new theory is A
+      + B with some minor improvements, which is what most of today''s academic papers
+      do. We do not want to misclassify it as the first case.
+
+      One trivial solution is that we directly fine-tune the skills back into the
+      LLM''s parameter space and let the LLM solve the question to see whether it
+      can solve it. If it fails again, this probably means that this skill is only
+      the product of prompt optimization. However, this still cannot resolve the aforementioned
+      two points.'
+  metadata:
+    source: IdeaHub
+    source_url: https://hypogenic.ai/ideahub/idea/ezWuDDUoGvbvIVfFDAih
+    author: Dixi Yao
+    idea_id: how_do_we_make_sure_skills_sel_20260715_033947_a0801865
+    created_at: '2026-07-15T03:39:47.211863'
+    status: submitted
+    github_repo_name: how_do_we_make_sure_skills_sel_20260715_033947_a0801865
+    github_repo_url: https://github.com/Hypogenic-AI/how_do_we_make_sure_skills_sel_20260715_033947_a0801865
